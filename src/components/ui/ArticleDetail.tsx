@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { Share2Icon, BookmarkIcon, MessageSquareIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import NewsCard from "./NewsCard";
+import { supabase } from "@/integrations/supabase/client";
 
 const ArticleDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -70,36 +71,42 @@ const ArticleDetail = () => {
       <div className="max-w-3xl mx-auto mb-16">
         <div className="mb-6">
           <span className="category-tag mb-2">{article.category}</span>
-          {article.isPremium && <span className="premium-badge ml-2">PREMIUM</span>}
+          {article.is_premium && <span className="premium-badge ml-2">PREMIUM</span>}
         </div>
         
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">{article.title}</h1>
         
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
-            <img
-              src={article.author.imageUrl}
-              alt={article.author.name}
-              className="h-12 w-12 rounded-full object-cover border-2 border-white dark:border-gray-800"
-            />
-            <div>
-              <p className="font-medium">{article.author.name}</p>
-              <p className="text-sm text-muted-foreground">{article.author.role}</p>
-            </div>
+            {article.author && (
+              <>
+                <img
+                  src={article.author.image_url}
+                  alt={article.author.name}
+                  className="h-12 w-12 rounded-full object-cover border-2 border-white dark:border-gray-800"
+                />
+                <div>
+                  <p className="font-medium">{article.author.name}</p>
+                  <p className="text-sm text-muted-foreground">{article.author.role}</p>
+                </div>
+              </>
+            )}
           </div>
           
           <div className="text-sm text-muted-foreground">
-            {format(new Date(article.publishedAt), "MMMM d, yyyy")}
+            {format(new Date(article.published_at), "MMMM d, yyyy")}
           </div>
         </div>
         
         <div className="relative mb-8 rounded-xl overflow-hidden">
-          <img
-            src={article.featuredImage.url}
-            alt={article.featuredImage.alt}
-            className="w-full h-auto object-cover rounded-xl"
-          />
-          {article.featuredImage.caption && (
+          {article.featuredImage && (
+            <img
+              src={article.featuredImage.url}
+              alt={article.featuredImage.alt}
+              className="w-full h-auto object-cover rounded-xl"
+            />
+          )}
+          {article.featuredImage?.caption && (
             <div className="bg-black/60 text-white text-sm py-2 px-4 absolute bottom-0 left-0 right-0">
               {article.featuredImage.caption}
               {article.featuredImage.credit && (
@@ -111,7 +118,7 @@ const ArticleDetail = () => {
         
         <div className="flex items-center justify-between mb-8">
           <div className="flex space-x-2">
-            {article.tags.map((tag) => (
+            {article.tags && article.tags.map((tag) => (
               <Link
                 key={tag.id}
                 to={`/tag/${tag.slug}`}
@@ -157,18 +164,22 @@ const ArticleDetail = () => {
         <Separator className="my-8" />
         
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
-          <div className="mb-4 md:mb-0">
-            <h3 className="text-xl font-semibold">About the Author</h3>
-            <p className="text-muted-foreground">{article.author.bio}</p>
-          </div>
+          {article.author && (
+            <div className="mb-4 md:mb-0">
+              <h3 className="text-xl font-semibold">About the Author</h3>
+              <p className="text-muted-foreground">{article.author.bio}</p>
+            </div>
+          )}
           
           <div className="flex space-x-2">
-            <Link 
-              to={`/author/${article.author.id}`}
-              className="bg-muted px-4 py-2 rounded-md hover:bg-muted/80 transition-colors text-sm"
-            >
-              More from this author
-            </Link>
+            {article.author && (
+              <Link 
+                to={`/author/${article.author.id}`}
+                className="bg-muted px-4 py-2 rounded-md hover:bg-muted/80 transition-colors text-sm"
+              >
+                More from this author
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -177,19 +188,19 @@ const ArticleDetail = () => {
         <div className="max-w-6xl mx-auto">
           <h3 className="text-2xl font-bold mb-6">Related Articles</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {relatedArticles.map((related, index) => (
+            {relatedArticles.map((related) => (
               <NewsCard
                 key={related.id}
-                id={related.id}
+                id={parseInt(related.id)}
                 title={related.title}
                 excerpt={related.excerpt}
-                imageUrl={related.featuredImage.url}
+                imageUrl={related.featuredImage?.url || ""}
                 category={related.category}
-                author={related.author.name}
-                authorImageUrl={related.author.imageUrl}
-                publishedAt={format(new Date(related.publishedAt), "MMMM d, yyyy")}
+                author={related.author?.name || ""}
+                authorImageUrl={related.author?.image_url || ""}
+                publishedAt={format(new Date(related.published_at), "MMMM d, yyyy")}
                 url={`/article/${related.slug}`}
-                isPremium={related.isPremium}
+                isPremium={related.is_premium}
               />
             ))}
           </div>

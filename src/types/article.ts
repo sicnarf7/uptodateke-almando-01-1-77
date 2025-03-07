@@ -1,19 +1,20 @@
 
 export interface ArticleTag {
-  id: number;
+  id: string;
   name: string;
   slug: string;
 }
 
 export interface ArticleAuthor {
-  id: number;
+  id: string;
   name: string;
-  imageUrl: string;
+  image_url: string;
   bio?: string;
   role?: string;
 }
 
 export interface ArticleImage {
+  id: string;
   url: string;
   alt: string;
   caption?: string;
@@ -21,18 +22,20 @@ export interface ArticleImage {
 }
 
 export interface Article {
-  id: number;
+  id: string;
   title: string;
   slug: string;
   excerpt: string;
   content: string;
-  featuredImage: ArticleImage;
+  featured_image_id: string;
+  featuredImage?: ArticleImage;
   category: string;
-  tags: ArticleTag[];
-  author: ArticleAuthor;
-  publishedAt: string;
-  updatedAt?: string;
-  isPremium: boolean;
+  tags?: ArticleTag[];
+  author_id: string;
+  author?: ArticleAuthor;
+  published_at: string;
+  updated_at?: string;
+  is_premium: boolean;
   relatedArticles?: Article[];
-  viewCount?: number;
+  view_count: number;
 }

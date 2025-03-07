@@ -38,16 +38,16 @@ const Articles = () => {
               {articles.map((article) => (
                 <NewsCard
                   key={article.id}
-                  id={article.id}
+                  id={parseInt(article.id)}
                   title={article.title}
                   excerpt={article.excerpt}
-                  imageUrl={article.featuredImage.url}
+                  imageUrl={article.featuredImage?.url || ""}
                   category={article.category}
-                  author={article.author.name}
-                  authorImageUrl={article.author.imageUrl}
-                  publishedAt={format(new Date(article.publishedAt), "MMMM d, yyyy")}
+                  author={article.author?.name || ""}
+                  authorImageUrl={article.author?.image_url || ""}
+                  publishedAt={format(new Date(article.published_at), "MMMM d, yyyy")}
                   url={`/article/${article.slug}`}
-                  isPremium={article.isPremium}
+                  isPremium={article.is_premium}
                 />
               ))}
             </div>
