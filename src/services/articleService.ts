@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Article, ArticleAuthor, ArticleTag, ArticleImage } from "@/types/article";
 
@@ -57,6 +56,13 @@ class ArticleService {
       return undefined;
     }
 
+    // Initialize the tags and relatedArticles arrays if they don't exist
+    const articleWithArrays = {
+      ...article,
+      tags: [] as ArticleTag[],
+      relatedArticles: [] as Article[]
+    };
+
     // Fetch tags for the article
     const { data: tags, error: tagsError } = await supabase
       .from('articles_to_tags')
@@ -68,7 +74,7 @@ class ArticleService {
     if (tagsError) {
       console.error('Error fetching tags for article:', tagsError);
     } else {
-      article.tags = tags.map(tag => tag.article_tags) as ArticleTag[];
+      articleWithArrays.tags = tags.map(tag => tag.article_tags) as ArticleTag[];
     }
 
     // Fetch related articles
@@ -93,7 +99,7 @@ class ArticleService {
       if (fetchError) {
         console.error('Error fetching related articles data:', fetchError);
       } else {
-        article.relatedArticles = relatedArticles;
+        articleWithArrays.relatedArticles = relatedArticles;
       }
     }
 
@@ -107,7 +113,7 @@ class ArticleService {
       console.error('Error updating view count:', updateError);
     }
 
-    return article;
+    return articleWithArrays;
   }
 
   async getRelatedArticles(article: Article): Promise<Article[]> {

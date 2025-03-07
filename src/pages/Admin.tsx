@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,7 @@ import { articleService } from "@/services/articleService";
 import { Article, ArticleAuthor, ArticleTag, ArticleImage } from "@/types/article";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Admin = () => {
   const navigate = useNavigate();
