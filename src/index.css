@@ -101,6 +101,42 @@
   blockquote, .quote {
     @apply font-nunito italic;
   }
+
+  .prose {
+    @apply max-w-none;
+  }
+
+  .prose h2 {
+    @apply text-2xl font-bold mt-8 mb-4;
+  }
+
+  .prose h3 {
+    @apply text-xl font-bold mt-6 mb-3;
+  }
+
+  .prose p {
+    @apply mb-6 leading-relaxed;
+  }
+
+  .prose ul, .prose ol {
+    @apply my-6 ml-6;
+  }
+
+  .prose li {
+    @apply mb-2;
+  }
+
+  .prose blockquote {
+    @apply border-l-4 border-kenya-green pl-4 italic my-6;
+  }
+
+  .prose img {
+    @apply rounded-lg my-8 mx-auto;
+  }
+
+  .prose a {
+    @apply text-kenya-red hover:text-kenya-red/80 underline;
+  }
 }
 
 @layer components {
