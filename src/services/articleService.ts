@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Article, ArticleAuthor, ArticleTag, ArticleImage } from "@/types/article";
 
@@ -23,7 +24,7 @@ class ArticleService {
         const { data: tags, error: tagsError } = await supabase
           .from('articles_to_tags')
           .select(`
-            article_tags(*)
+            tag_id(*)
           `)
           .eq('article_id', article.id);
 
@@ -32,7 +33,7 @@ class ArticleService {
           return { ...article, tags: [] };
         }
 
-        const formattedTags = tags.map(tag => tag.article_tags) as ArticleTag[];
+        const formattedTags = tags.map(tag => tag.tag_id) as ArticleTag[];
         return { ...article, tags: formattedTags };
       })
     );
@@ -67,14 +68,14 @@ class ArticleService {
     const { data: tags, error: tagsError } = await supabase
       .from('articles_to_tags')
       .select(`
-        article_tags(*)
+        tag_id(*)
       `)
       .eq('article_id', article.id);
 
     if (tagsError) {
       console.error('Error fetching tags for article:', tagsError);
     } else {
-      articleWithArrays.tags = tags.map(tag => tag.article_tags) as ArticleTag[];
+      articleWithArrays.tags = tags.map(tag => tag.tag_id) as ArticleTag[];
     }
 
     // Fetch related articles
