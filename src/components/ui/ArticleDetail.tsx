@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Article } from "@/types/article";
@@ -6,7 +5,7 @@ import { articleService } from "@/services/articleService";
 import { format } from "date-fns";
 import { Share2Icon, BookmarkIcon, MessageSquareIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import NewsCard from "./NewsCard";
+import { NewsCard } from "@/components/ui/NewsCard";
 import { supabase } from "@/integrations/supabase/client";
 
 const ArticleDetail = () => {

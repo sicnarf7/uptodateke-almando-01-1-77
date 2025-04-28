@@ -5,7 +5,7 @@ import HeroSection from "@/components/ui/HeroSection";
 import TrendingSection from "@/components/ui/TrendingSection";
 import ContentSection from "@/components/ui/ContentSection";
 import PollCard from "@/components/ui/PollCard";
-import VideoCard from "@/components/ui/VideoCard";
+import { VideoCard } from "@/components/ui/VideoCard";
 import SubscriptionSection from "@/components/ui/SubscriptionSection";
 
 const Index = () => {

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Article } from "@/types/article";
 import { articleService } from "@/services/articleService";
-import NewsCard from "@/components/ui/NewsCard";
+import { NewsCard } from "@/components/ui/NewsCard";
 import { format } from "date-fns";
 
 const Articles = () => {

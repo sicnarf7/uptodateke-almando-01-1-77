@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import NewsCard from "./NewsCard";
+import { NewsCard } from "@/components/ui/NewsCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ContentSectionProps {
