@@ -16,7 +16,7 @@ interface VideoCardProps {
   videoUrl: string;
 }
 
-const VideoCard = ({
+export const VideoCard = ({
   id,
   title,
   thumbnailUrl,
@@ -82,5 +82,3 @@ const VideoCard = ({
     </div>
   );
 };
-
-export default VideoCard;

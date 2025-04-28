@@ -16,7 +16,7 @@ interface NewsCardProps {
   isPremium?: boolean;
 }
 
-const NewsCard = ({
+export const NewsCard = ({
   id,
   title,
   excerpt,
@@ -107,5 +107,3 @@ const NewsCard = ({
     </div>
   );
 };
-
-export default NewsCard;
