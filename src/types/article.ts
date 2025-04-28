@@ -38,4 +38,5 @@ export interface Article {
   is_premium: boolean;
   relatedArticles?: Article[];
   view_count: number;
+  status: string;
 }

@@ -2,12 +2,17 @@ import React, { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { articleService } from "@/services/articleService";
 import { Article, ArticleAuthor, ArticleTag, ArticleImage } from "@/types/article";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { ArticleForm } from "@/components/admin/ArticleForm";
-import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -16,6 +21,34 @@ const Admin = () => {
   const [tags, setTags] = useState<ArticleTag[]>([]);
   const [authors, setAuthors] = useState<ArticleAuthor[]>([]);
   const [images, setImages] = useState<ArticleImage[]>([]);
+  
+  const [tagFormData, setTagFormData] = useState<{ name: string; slug: string }>({
+    name: '',
+    slug: ''
+  });
+  
+  const [authorFormData, setAuthorFormData] = useState<{
+    name: string;
+    image_url: string;
+    role?: string;
+    bio?: string;
+  }>({
+    name: '',
+    image_url: '',
+    role: '',
+    bio: ''
+  });
+  
+  const [imageFormData, setImageFormData] = useState<{
+    file?: File;
+    alt: string;
+    caption?: string;
+    credit?: string;
+  }>({
+    alt: '',
+    caption: '',
+    credit: ''
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -38,6 +71,122 @@ const Admin = () => {
   const refreshArticles = async () => {
     const articlesData = await articleService.getAllArticles();
     setArticles(articlesData);
+  };
+  
+  const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setTagFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const generateTagSlug = (name: string) => {
+    const slug = name
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/--+/g, '-')
+      .trim();
+    
+    setTagFormData(prev => ({ ...prev, slug }));
+  };
+  
+  const handleTagSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!tagFormData.name || !tagFormData.slug) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+    
+    try {
+      const newTag = await articleService.createTag({
+        name: tagFormData.name,
+        slug: tagFormData.slug
+      });
+      
+      if (newTag) {
+        toast.success("Tag created successfully");
+        setTagFormData({ name: '', slug: '' });
+        
+        const updatedTags = await articleService.getAllTags();
+        setTags(updatedTags);
+      }
+    } catch (error) {
+      console.error("Error creating tag:", error);
+      toast.error("Failed to create tag");
+    }
+  };
+  
+  const handleAuthorChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setAuthorFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleAuthorSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!authorFormData.name || !authorFormData.image_url) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+    
+    try {
+      const newAuthor = await articleService.createAuthor({
+        name: authorFormData.name,
+        image_url: authorFormData.image_url,
+        role: authorFormData.role || undefined,
+        bio: authorFormData.bio || undefined
+      });
+      
+      if (newAuthor) {
+        toast.success("Author created successfully");
+        setAuthorFormData({ name: '', image_url: '', role: '', bio: '' });
+        
+        const updatedAuthors = await articleService.getAllAuthors();
+        setAuthors(updatedAuthors);
+      }
+    } catch (error) {
+      console.error("Error creating author:", error);
+      toast.error("Failed to create author");
+    }
+  };
+  
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, files } = e.target;
+    
+    if (name === 'file' && files && files.length > 0) {
+      setImageFormData(prev => ({ ...prev, file: files[0] }));
+    } else {
+      setImageFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+  
+  const handleImageSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!imageFormData.file || !imageFormData.alt) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+    
+    try {
+      const newImage = await articleService.uploadImage(
+        imageFormData.file,
+        imageFormData.alt,
+        imageFormData.caption,
+        imageFormData.credit
+      );
+      
+      if (newImage) {
+        toast.success("Image uploaded successfully");
+        setImageFormData({ alt: '', caption: '', credit: '' });
+        
+        const updatedImages = await articleService.getAllImages();
+        setImages(updatedImages);
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image");
+    }
   };
 
   return (
@@ -80,7 +229,7 @@ const Admin = () => {
                             <h3 className="font-medium">{article.title}</h3>
                             <div className="flex gap-2 mt-1">
                               <Badge variant={article.status === 'published' ? 'default' : 'secondary'}>
-                                {article.status}
+                                {article.status || 'published'}
                               </Badge>
                               {article.is_premium && <Badge variant="outline">Premium</Badge>}
                             </div>

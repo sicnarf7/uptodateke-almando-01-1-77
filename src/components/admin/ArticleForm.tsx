@@ -52,6 +52,7 @@ export const ArticleForm = ({ authors, tags, images, onSuccess }: ArticleFormPro
         published_at: publishedAt,
         author_id: selectedAuthor,
         featured_image_id: selectedImage,
+        view_count: 0 // Add the missing view_count property
       } as Omit<Article, 'id'>;
       
       const newArticle = await articleService.createArticle(completeArticle);
