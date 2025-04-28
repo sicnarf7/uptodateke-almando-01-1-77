@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Article, ArticleAuthor, ArticleTag, ArticleImage } from "@/types/article";
 
@@ -300,6 +299,22 @@ class ArticleService {
     }
 
     return data;
+  }
+
+  async addTagToArticle(articleId: string, tagId: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('articles_to_tags')
+      .insert({
+        article_id: articleId,
+        tag_id: tagId
+      });
+
+    if (error) {
+      console.error('Error adding tag to article:', error);
+      return false;
+    }
+
+    return true;
   }
 }
 

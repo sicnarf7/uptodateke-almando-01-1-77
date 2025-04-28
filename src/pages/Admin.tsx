@@ -1,68 +1,22 @@
 import React, { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { articleService } from "@/services/articleService";
 import { Article, ArticleAuthor, ArticleTag, ArticleImage } from "@/types/article";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { ArticleForm } from "@/components/admin/ArticleForm";
+import { Badge } from "@/components/ui/badge";
 
 const Admin = () => {
   const navigate = useNavigate();
-  
-  // State for tabs
   const [activeTab, setActiveTab] = useState("articles");
-
-  // State for articles
   const [articles, setArticles] = useState<Article[]>([]);
-  const [articleFormData, setArticleFormData] = useState<Partial<Article>>({
-    title: "",
-    slug: "",
-    excerpt: "",
-    content: "",
-    category: "",
-    is_premium: false,
-  });
-
-  // State for tags
   const [tags, setTags] = useState<ArticleTag[]>([]);
-  const [tagFormData, setTagFormData] = useState<Partial<ArticleTag>>({
-    name: "",
-    slug: "",
-  });
-
-  // State for authors
   const [authors, setAuthors] = useState<ArticleAuthor[]>([]);
-  const [authorFormData, setAuthorFormData] = useState<Partial<ArticleAuthor>>({
-    name: "",
-    image_url: "",
-    bio: "",
-    role: "",
-  });
-
-  // State for images
   const [images, setImages] = useState<ArticleImage[]>([]);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imageFormData, setImageFormData] = useState({
-    alt: "",
-    caption: "",
-    credit: "",
-  });
 
-  // State for selected data
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedAuthor, setSelectedAuthor] = useState<string>("");
-  const [selectedImage, setSelectedImage] = useState<string>("");
-
-  // Fetch initial data
   useEffect(() => {
     const fetchData = async () => {
       const [articlesData, tagsData, authorsData, imagesData] = await Promise.all([
@@ -81,200 +35,9 @@ const Admin = () => {
     fetchData();
   }, []);
 
-  // Handle form submissions
-  const handleArticleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!articleFormData.title || !articleFormData.slug || !articleFormData.excerpt || 
-        !articleFormData.content || !articleFormData.category || !selectedAuthor || !selectedImage) {
-      toast.error("Please fill all required fields");
-      return;
-    }
-
-    try {
-      const completeArticle = {
-        ...articleFormData,
-        author_id: selectedAuthor,
-        featured_image_id: selectedImage,
-      } as Omit<Article, 'id'>;
-      
-      const newArticle = await articleService.createArticle(completeArticle);
-      
-      if (newArticle) {
-        // Add tags to the article
-        for (const tagId of selectedTags) {
-          await supabase
-            .from('articles_to_tags')
-            .insert({
-              article_id: newArticle.id,
-              tag_id: tagId
-            });
-        }
-        
-        toast.success("Article created successfully");
-        setArticleFormData({
-          title: "",
-          slug: "",
-          excerpt: "",
-          content: "",
-          category: "",
-          is_premium: false,
-        });
-        setSelectedTags([]);
-        setSelectedAuthor("");
-        setSelectedImage("");
-        
-        // Refresh articles list
-        const articlesData = await articleService.getAllArticles();
-        setArticles(articlesData);
-      }
-    } catch (error) {
-      console.error("Error creating article:", error);
-      toast.error("Failed to create article");
-    }
-  };
-
-  const handleTagSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!tagFormData.name || !tagFormData.slug) {
-      toast.error("Please fill all required fields");
-      return;
-    }
-
-    try {
-      const newTag = await articleService.createTag(tagFormData as Omit<ArticleTag, 'id'>);
-      
-      if (newTag) {
-        toast.success("Tag created successfully");
-        setTagFormData({
-          name: "",
-          slug: "",
-        });
-        
-        // Refresh tags list
-        const tagsData = await articleService.getAllTags();
-        setTags(tagsData);
-      }
-    } catch (error) {
-      console.error("Error creating tag:", error);
-      toast.error("Failed to create tag");
-    }
-  };
-
-  const handleAuthorSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!authorFormData.name || !authorFormData.image_url) {
-      toast.error("Please fill all required fields");
-      return;
-    }
-
-    try {
-      const newAuthor = await articleService.createAuthor(authorFormData as Omit<ArticleAuthor, 'id'>);
-      
-      if (newAuthor) {
-        toast.success("Author created successfully");
-        setAuthorFormData({
-          name: "",
-          image_url: "",
-          bio: "",
-          role: "",
-        });
-        
-        // Refresh authors list
-        const authorsData = await articleService.getAllAuthors();
-        setAuthors(authorsData);
-      }
-    } catch (error) {
-      console.error("Error creating author:", error);
-      toast.error("Failed to create author");
-    }
-  };
-
-  const handleImageSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!imageFile || !imageFormData.alt) {
-      toast.error("Please select an image and provide alt text");
-      return;
-    }
-
-    try {
-      const newImage = await articleService.uploadImage(
-        imageFile,
-        imageFormData.alt,
-        imageFormData.caption,
-        imageFormData.credit
-      );
-      
-      if (newImage) {
-        toast.success("Image uploaded successfully");
-        setImageFile(null);
-        setImageFormData({
-          alt: "",
-          caption: "",
-          credit: "",
-        });
-        
-        // Refresh images list
-        const imagesData = await articleService.getAllImages();
-        setImages(imagesData);
-      }
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      toast.error("Failed to upload image");
-    }
-  };
-
-  // Handle form input changes
-  const handleArticleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setArticleFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setTagFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleAuthorChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setAuthorFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, files } = e.target;
-    
-    if (name === "file" && files && files.length > 0) {
-      setImageFile(files[0]);
-    } else {
-      setImageFormData(prev => ({ ...prev, [name]: value }));
-    }
-  };
-
-  // Generate slug from title
-  const generateSlug = (title: string) => {
-    const slug = title
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/--+/g, '-')
-      .trim();
-    
-    setArticleFormData(prev => ({ ...prev, slug }));
-  };
-
-  // Generate tag slug from name
-  const generateTagSlug = (name: string) => {
-    const slug = name
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/--+/g, '-')
-      .trim();
-    
-    setTagFormData(prev => ({ ...prev, slug }));
+  const refreshArticles = async () => {
+    const articlesData = await articleService.getAllArticles();
+    setArticles(articlesData);
   };
 
   return (
@@ -290,161 +53,39 @@ const Admin = () => {
             <TabsTrigger value="images">Images</TabsTrigger>
           </TabsList>
           
-          {/* Articles Tab */}
           <TabsContent value="articles">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Create New Article</CardTitle>
-                    <CardDescription>Fill out the form to create a new article</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleArticleSubmit} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="title">Title*</Label>
-                        <Input 
-                          id="title" 
-                          name="title" 
-                          value={articleFormData.title}
-                          onChange={handleArticleChange}
-                          onBlur={(e) => generateSlug(e.target.value)}
-                          required
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="slug">Slug*</Label>
-                        <Input 
-                          id="slug" 
-                          name="slug" 
-                          value={articleFormData.slug}
-                          onChange={handleArticleChange}
-                          required
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="category">Category*</Label>
-                        <Input 
-                          id="category" 
-                          name="category" 
-                          value={articleFormData.category}
-                          onChange={handleArticleChange}
-                          required
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="excerpt">Excerpt*</Label>
-                        <Textarea 
-                          id="excerpt" 
-                          name="excerpt" 
-                          value={articleFormData.excerpt}
-                          onChange={handleArticleChange}
-                          required
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="content">Content*</Label>
-                        <Textarea 
-                          id="content" 
-                          name="content" 
-                          value={articleFormData.content}
-                          onChange={handleArticleChange}
-                          className="min-h-[200px]"
-                          required
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Author*</Label>
-                        <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select an author" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {authors.map((author) => (
-                              <SelectItem key={author.id} value={author.id}>
-                                {author.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Featured Image*</Label>
-                        <Select value={selectedImage} onValueChange={setSelectedImage}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a featured image" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {images.map((image) => (
-                              <SelectItem key={image.id} value={image.id}>
-                                {image.alt}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Tags</Label>
-                        <div className="grid grid-cols-2 gap-2">
-                          {tags.map((tag) => (
-                            <div key={tag.id} className="flex items-center space-x-2">
-                              <Checkbox 
-                                id={`tag-${tag.id}`}
-                                checked={selectedTags.includes(tag.id)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setSelectedTags(prev => [...prev, tag.id]);
-                                  } else {
-                                    setSelectedTags(prev => prev.filter(id => id !== tag.id));
-                                  }
-                                }}
-                              />
-                              <Label htmlFor={`tag-${tag.id}`}>{tag.name}</Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="is_premium"
-                          checked={articleFormData.is_premium}
-                          onCheckedChange={(checked) => {
-                            setArticleFormData(prev => ({ ...prev, is_premium: checked as boolean }));
-                          }}
-                        />
-                        <Label htmlFor="is_premium">Premium Content</Label>
-                      </div>
-                      
-                      <Button type="submit" className="w-full">Create Article</Button>
-                    </form>
-                  </CardContent>
-                </Card>
+                <ArticleForm 
+                  authors={authors}
+                  tags={tags}
+                  images={images}
+                  onSuccess={refreshArticles}
+                />
               </div>
               
               <div>
                 <Card>
                   <CardHeader>
-                    <CardTitle>Published Articles</CardTitle>
+                    <CardTitle>Articles</CardTitle>
                     <CardDescription>Manage your articles</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       {articles.length === 0 ? (
-                        <p className="text-muted-foreground">No articles published yet.</p>
+                        <p className="text-muted-foreground">No articles yet.</p>
                       ) : (
                         articles.map((article) => (
                           <div key={article.id} className="border-b pb-3 mb-3 last:border-0">
                             <h3 className="font-medium">{article.title}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {article.category} • {format(new Date(article.published_at), "MMM d, yyyy")}
+                            <div className="flex gap-2 mt-1">
+                              <Badge variant={article.status === 'published' ? 'default' : 'secondary'}>
+                                {article.status}
+                              </Badge>
+                              {article.is_premium && <Badge variant="outline">Premium</Badge>}
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {article.category} • {article.published_at ? format(new Date(article.published_at), "MMM d, yyyy") : 'Not published'}
                             </p>
                             <div className="flex mt-2">
                               <Button 
@@ -466,7 +107,6 @@ const Admin = () => {
             </div>
           </TabsContent>
           
-          {/* Tags Tab */}
           <TabsContent value="tags">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div>
@@ -531,7 +171,6 @@ const Admin = () => {
             </div>
           </TabsContent>
           
-          {/* Authors Tab */}
           <TabsContent value="authors">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div>
@@ -622,7 +261,6 @@ const Admin = () => {
             </div>
           </TabsContent>
           
-          {/* Images Tab */}
           <TabsContent value="images">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div>

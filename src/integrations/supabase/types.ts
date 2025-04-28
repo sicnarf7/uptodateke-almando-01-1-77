@@ -84,8 +84,9 @@ export type Database = {
           featured_image_id: string | null
           id: string
           is_premium: boolean
-          published_at: string
+          published_at: string | null
           slug: string
+          status: string
           title: string
           updated_at: string | null
           view_count: number
@@ -98,8 +99,9 @@ export type Database = {
           featured_image_id?: string | null
           id?: string
           is_premium?: boolean
-          published_at?: string
+          published_at?: string | null
           slug: string
+          status?: string
           title: string
           updated_at?: string | null
           view_count?: number
@@ -112,8 +114,9 @@ export type Database = {
           featured_image_id?: string | null
           id?: string
           is_premium?: boolean
-          published_at?: string
+          published_at?: string | null
           slug?: string
+          status?: string
           title?: string
           updated_at?: string | null
           view_count?: number
