@@ -11,15 +11,25 @@ import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { Article, ArticleAuthor, ArticleTag, ArticleImage } from "@/types/article";
 import { toast } from "sonner";
 import { articleService } from "@/services/articleService";
+import { Loader2 } from "lucide-react";
 
 interface ArticleFormProps {
   authors: ArticleAuthor[];
   tags: ArticleTag[];
   images: ArticleImage[];
   onSuccess: () => void;
+  isLoading?: boolean;
+  setIsLoading?: (loading: boolean) => void;
 }
 
-export const ArticleForm = ({ authors, tags, images, onSuccess }: ArticleFormProps) => {
+export const ArticleForm = ({ 
+  authors, 
+  tags, 
+  images, 
+  onSuccess,
+  isLoading = false,
+  setIsLoading = () => {}
+}: ArticleFormProps) => {
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
@@ -43,6 +53,7 @@ export const ArticleForm = ({ authors, tags, images, onSuccess }: ArticleFormPro
     }
 
     try {
+      setIsLoading(true);
       const status = publish ? "published" : "draft";
       const publishedAt = publish ? new Date().toISOString() : null;
       
@@ -52,7 +63,7 @@ export const ArticleForm = ({ authors, tags, images, onSuccess }: ArticleFormPro
         published_at: publishedAt,
         author_id: selectedAuthor,
         featured_image_id: selectedImage,
-        view_count: 0 // Add the missing view_count property
+        view_count: 0
       } as Omit<Article, 'id'>;
       
       const newArticle = await articleService.createArticle(completeArticle);
@@ -79,7 +90,9 @@ export const ArticleForm = ({ authors, tags, images, onSuccess }: ArticleFormPro
       }
     } catch (error) {
       console.error("Error creating article:", error);
-      toast.error("Failed to create article");
+      toast.error(`Failed to create article: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -112,6 +125,7 @@ export const ArticleForm = ({ authors, tags, images, onSuccess }: ArticleFormPro
                 generateSlug(e.target.value);
               }}
               required
+              disabled={isLoading}
             />
           </div>
           
@@ -122,6 +136,7 @@ export const ArticleForm = ({ authors, tags, images, onSuccess }: ArticleFormPro
               value={formData.slug}
               onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
               required
+              disabled={isLoading}
             />
           </div>
           
@@ -132,6 +147,7 @@ export const ArticleForm = ({ authors, tags, images, onSuccess }: ArticleFormPro
               value={formData.category}
               onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
               required
+              disabled={isLoading}
             />
           </div>
           
@@ -142,6 +158,7 @@ export const ArticleForm = ({ authors, tags, images, onSuccess }: ArticleFormPro
               value={formData.excerpt}
               onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
               required
+              disabled={isLoading}
             />
           </div>
           
@@ -150,12 +167,17 @@ export const ArticleForm = ({ authors, tags, images, onSuccess }: ArticleFormPro
             <RichTextEditor
               content={formData.content}
               onChange={(content) => setFormData(prev => ({ ...prev, content }))}
+              disabled={isLoading}
             />
           </div>
           
           <div className="space-y-2">
             <Label>Author*</Label>
-            <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
+            <Select 
+              value={selectedAuthor} 
+              onValueChange={setSelectedAuthor}
+              disabled={isLoading}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select an author" />
               </SelectTrigger>
@@ -171,9 +193,13 @@ export const ArticleForm = ({ authors, tags, images, onSuccess }: ArticleFormPro
           
           <div className="space-y-2">
             <Label>Featured Image*</Label>
-            <Select value={selectedImage} onValueChange={setSelectedImage}>
+            <Select 
+              value={selectedImage} 
+              onValueChange={setSelectedImage}
+              disabled={isLoading || images.length === 0}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Select a featured image" />
+                <SelectValue placeholder={images.length === 0 ? "No images available - upload one first" : "Select a featured image"} />
               </SelectTrigger>
               <SelectContent>
                 {images.map((image) => (
@@ -200,6 +226,7 @@ export const ArticleForm = ({ authors, tags, images, onSuccess }: ArticleFormPro
                         setSelectedTags(prev => prev.filter(id => id !== tag.id));
                       }
                     }}
+                    disabled={isLoading}
                   />
                   <Label htmlFor={`tag-${tag.id}`}>{tag.name}</Label>
                 </div>
@@ -214,6 +241,7 @@ export const ArticleForm = ({ authors, tags, images, onSuccess }: ArticleFormPro
               onCheckedChange={(checked) => {
                 setFormData(prev => ({ ...prev, is_premium: checked as boolean }));
               }}
+              disabled={isLoading}
             />
             <Label htmlFor="is_premium">Premium Content</Label>
           </div>
@@ -224,15 +252,31 @@ export const ArticleForm = ({ authors, tags, images, onSuccess }: ArticleFormPro
               variant="outline"
               className="flex-1"
               onClick={(e) => handleSubmit(e, false)}
+              disabled={isLoading}
             >
-              Save as Draft
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save as Draft"
+              )}
             </Button>
             <Button 
               type="submit"
               className="flex-1"
               onClick={(e) => handleSubmit(e, true)}
+              disabled={isLoading}
             >
-              Publish
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Publishing...
+                </>
+              ) : (
+                "Publish"
+              )}
             </Button>
           </div>
         </form>

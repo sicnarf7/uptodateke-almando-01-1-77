@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Article, ArticleAuthor, ArticleTag, ArticleImage } from "@/types/article";
 
@@ -251,7 +252,7 @@ class ArticleService {
     const fileName = `${Date.now()}-${file.name}`;
     const { data: fileData, error: uploadError } = await supabase
       .storage
-      .from('article-images')
+      .from('article-images')  // Use the correct bucket name we created
       .upload(fileName, file);
 
     if (uploadError) {
@@ -262,7 +263,7 @@ class ArticleService {
     // Get the public URL
     const { data: urlData } = supabase
       .storage
-      .from('article-images')
+      .from('article-images')  // Use the correct bucket name here too
       .getPublicUrl(fileName);
 
     // Create an entry in the article_images table
