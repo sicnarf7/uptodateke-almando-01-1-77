@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +16,16 @@ import Videos from "./pages/Videos";
 import Celebrity from "./pages/entertainment/Celebrity";
 import Music from "./pages/entertainment/Music";
 import Events from "./pages/entertainment/Events";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Careers from "./pages/Careers";
+import Advertise from "./pages/Advertise";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Cookies from "./pages/Cookies";
+import Sitemap from "./pages/Sitemap";
+import Sports from "./pages/Sports";
+import Business from "./pages/Business";
 
 const queryClient = new QueryClient();
 
@@ -56,9 +67,21 @@ const App = () => (
           <Route path="/news/tech/innovation" element={<News section="tech" category="innovation" />} />
           <Route path="/news/featured" element={<News section="featured" />} />
           
-          {/* Other main routes */}
+          {/* Static pages */}
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/careers" element={<Careers />} />
+          <Route path="/advertise" element={<Advertise />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/cookies" element={<Cookies />} />
+          <Route path="/sitemap" element={<Sitemap />} />
+          
+          {/* Additional main sections */}
           <Route path="/trending" element={<Trending />} />
           <Route path="/videos" element={<Videos />} />
+          <Route path="/sports" element={<Sports />} />
+          <Route path="/business" element={<Business />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArticleForm } from "@/components/admin/ArticleForm";
 import { Article, ArticleAuthor, ArticleTag, ArticleImage } from "@/types/article";
 import { format } from "date-fns";
+import { Link } from "react-router-dom";
 
 interface ArticlesTabProps {
   articles: Article[];
@@ -54,10 +55,12 @@ export const ArticlesTab = ({ articles, authors, tags, images, onRefresh }: Arti
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => window.open(`/article/${article.slug}`, '_blank')}
+                        asChild
                         className="mr-2"
                       >
-                        View
+                        <Link to={`/article/${article.slug}`}>
+                          View
+                        </Link>
                       </Button>
                     </div>
                   </div>
