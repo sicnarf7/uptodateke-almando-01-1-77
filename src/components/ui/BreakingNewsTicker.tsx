@@ -1,46 +1,56 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { articleService } from "@/services/articleService";
+import { Article } from "@/types/article";
 
 interface TickerItem {
-  id: number;
+  id: string;
   text: string;
   url: string;
   isBreaking?: boolean;
 }
 
 const BreakingNewsTicker = () => {
-  const [tickerItems, setTickerItems] = useState<TickerItem[]>([
-    {
-      id: 1,
-      text: "Parliament passes new bill on digital taxation",
-      url: "/news/politics/taxation-bill",
-      isBreaking: true,
-    },
-    {
-      id: 2,
-      text: "Kenya Sevens qualifies for Olympics",
-      url: "/sports/rugby/kenya-sevens-olympics",
-    },
-    {
-      id: 3,
-      text: "Major infrastructure project announced for Nairobi",
-      url: "/news/infrastructure/nairobi-project",
-    },
-    {
-      id: 4,
-      text: "Popular artist releases surprise album",
-      url: "/entertainment/music/surprise-album",
-    },
-    {
-      id: 5,
-      text: "Kenya shilling gains against the dollar",
-      url: "/business/currency/shilling-dollar",
-    },
-  ]);
+  const [tickerItems, setTickerItems] = useState<TickerItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLatestArticles = async () => {
+      try {
+        const articles = await articleService.getAllArticles();
+        
+        // Filter published articles and sort by published date (newest first)
+        const latestArticles = articles
+          .filter(article => article.status === 'published')
+          .sort((a, b) => 
+            new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
+          )
+          .slice(0, 5); // Take latest 5
+          
+        // Convert articles to ticker items
+        const items = latestArticles.map((article, index) => ({
+          id: article.id,
+          text: article.title,
+          url: `/article/${article.slug}`,
+          isBreaking: index === 0, // Make the most recent article "breaking"
+        }));
+        
+        setTickerItems(items);
+      } catch (error) {
+        console.error('Error fetching ticker articles:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchLatestArticles();
+  }, []);
 
   // Rotate ticker items every few seconds
   useEffect(() => {
+    if (tickerItems.length <= 1) return; // Don't rotate if there's only one or no items
+    
     const timer = setInterval(() => {
       setTickerItems((prevItems) => {
         const newItems = [...prevItems];
@@ -53,7 +63,25 @@ const BreakingNewsTicker = () => {
     }, 5000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [tickerItems.length]);
+
+  // If loading or no items, show placeholder
+  if (isLoading || tickerItems.length === 0) {
+    return (
+      <div className="bg-black text-white overflow-hidden w-full py-2 border-b border-gray-800">
+        <div className="relative flex items-center h-8">
+          <div className="min-w-max px-3 py-1 bg-kenya-red font-bold text-sm rounded-r-md z-10">
+            TRENDING NOW
+          </div>
+          <div className="overflow-hidden flex-1 ml-2">
+            <div className="whitespace-nowrap inline-block">
+              {isLoading ? "Loading latest news..." : "No breaking news at the moment"}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-black text-white overflow-hidden w-full py-2 border-b border-gray-800">
