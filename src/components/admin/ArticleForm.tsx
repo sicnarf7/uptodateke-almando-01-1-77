@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Article, ArticleAuthor, ArticleTag, ArticleImage } from "@/types/article";
 import { ArticleFormHeader } from "./article/ArticleFormHeader";
@@ -6,6 +7,7 @@ import { ArticleContentFields } from "./article/ArticleContentFields";
 import { ArticleRelationFields } from "./article/ArticleRelationFields";
 import { ArticleActions } from "./article/ArticleActions";
 import { useArticleForm } from "@/hooks/useArticleForm";
+import { categoryOptions } from "@/data/categoryOptions";
 
 interface ArticleFormProps {
   authors: ArticleAuthor[];
@@ -36,7 +38,10 @@ export const ArticleForm = ({
     handleDeleteArticle,
     handleCategoryChange,
     handleTagChange,
-    generateSlug
+    generateSlug,
+    setFormData,
+    setSelectedAuthor,
+    setSelectedImage
   } = useArticleForm({
     articleToEdit,
     onSuccess,
