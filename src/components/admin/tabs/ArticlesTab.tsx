@@ -7,7 +7,7 @@ import { ArticleForm } from "@/components/admin/ArticleForm";
 import { Article, ArticleAuthor, ArticleTag, ArticleImage } from "@/types/article";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
-import { Star, Trash2, Edit, Eye } from "lucide-react";
+import { Star, Edit, Eye } from "lucide-react";
 import { articleService } from "@/services/articleService";
 import { useToast } from "@/hooks/use-toast";
 
@@ -17,9 +17,23 @@ interface ArticlesTabProps {
   tags: ArticleTag[];
   images: ArticleImage[];
   onRefresh: () => void;
+  selectedArticle: Article | null;
+  setSelectedArticle: (article: Article | null) => void;
+  isCreatingNew: boolean;
+  setIsCreatingNew: (isNew: boolean) => void;
 }
 
-export const ArticlesTab = ({ articles, authors, tags, images, onRefresh }: ArticlesTabProps) => {
+export const ArticlesTab = ({ 
+  articles, 
+  authors, 
+  tags, 
+  images, 
+  onRefresh,
+  selectedArticle,
+  setSelectedArticle,
+  isCreatingNew,
+  setIsCreatingNew
+}: ArticlesTabProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
   const { toast } = useToast();
@@ -47,10 +61,14 @@ export const ArticlesTab = ({ articles, authors, tags, images, onRefresh }: Arti
 
   const toggleFeature = async (article: Article) => {
     // For this demo, we'll just increase the view count to make it featured
-    // In a real app, you might have a "featured" flag
     await handleUpdateArticle(article.id, { 
       view_count: article.view_count + 100 
     });
+  };
+  
+  const handleEditArticle = (article: Article) => {
+    setSelectedArticle(article);
+    setIsCreatingNew(false);
   };
   
   return (
@@ -63,6 +81,7 @@ export const ArticlesTab = ({ articles, authors, tags, images, onRefresh }: Arti
           onSuccess={onRefresh}
           isLoading={isLoading}
           setIsLoading={setIsLoading}
+          articleToEdit={selectedArticle}
         />
       </div>
       
@@ -80,12 +99,17 @@ export const ArticlesTab = ({ articles, authors, tags, images, onRefresh }: Arti
                 articles.map((article) => (
                   <div key={article.id} className="border-b pb-3 mb-3 last:border-0">
                     <h3 className="font-medium">{article.title}</h3>
-                    <div className="flex gap-2 mt-1">
+                    <div className="flex flex-wrap gap-2 mt-1">
                       <Badge variant={article.status === 'published' ? 'default' : 'secondary'}>
                         {article.status}
                       </Badge>
                       {article.is_premium && <Badge variant="outline">Premium</Badge>}
                       {article.view_count > 100 && <Badge variant="default" className="bg-amber-500">Featured</Badge>}
+                      {article.subcategory && (
+                        <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
+                          {article.subcategory}
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
                       {article.category} • {article.published_at ? format(new Date(article.published_at), "MMM d, yyyy") : 'Not published'}
@@ -114,6 +138,14 @@ export const ArticlesTab = ({ articles, authors, tags, images, onRefresh }: Arti
                       >
                         <Star className={`h-3.5 w-3.5 mr-1 ${article.view_count > 100 ? 'fill-amber-500' : ''}`} /> 
                         {article.view_count > 100 ? 'Featured' : 'Feature'}
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditArticle(article)}
+                      >
+                        <Edit className="h-3.5 w-3.5 mr-1" /> Edit
                       </Button>
                     </div>
                   </div>

@@ -21,6 +21,15 @@ export interface ArticleImage {
   credit?: string;
 }
 
+export interface CategoryOption {
+  value: string;
+  label: string;
+  subcategories: {
+    value: string;
+    label: string;
+  }[];
+}
+
 export interface Article {
   id: string;
   title: string;
@@ -30,6 +39,7 @@ export interface Article {
   featured_image_id: string;
   featuredImage?: ArticleImage;
   category: string;
+  subcategory?: string;
   tags?: ArticleTag[];
   author_id: string;
   author?: ArticleAuthor;
