@@ -19,6 +19,11 @@ export const TagsTab = ({ tags, onRefresh }: TagsTabProps) => {
     slug: ''
   });
 
+  const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setTagFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
   const generateTagSlug = (name: string) => {
     const slug = name
       .toLowerCase()
@@ -29,12 +34,7 @@ export const TagsTab = ({ tags, onRefresh }: TagsTabProps) => {
     
     setTagFormData(prev => ({ ...prev, slug }));
   };
-
-  const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setTagFormData(prev => ({ ...prev, [name]: value }));
-  };
-
+  
   const handleTagSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
