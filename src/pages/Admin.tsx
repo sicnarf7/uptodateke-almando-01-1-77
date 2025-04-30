@@ -4,22 +4,36 @@ import MainLayout from "@/components/layout/MainLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Article, ArticleAuthor, ArticleTag, ArticleImage } from "@/types/article";
 import { articleService } from "@/services/articleService";
+import { Button } from "@/components/ui/button";
 import { ArticlesTab } from "@/components/admin/tabs/ArticlesTab";
 import { AuthorsTab } from "@/components/admin/tabs/AuthorsTab";
 import { TagsTab } from "@/components/admin/tabs/TagsTab";
 import { ImagesTab } from "@/components/admin/tabs/ImagesTab";
 
+/**
+ * Admin dashboard with content management system tabs
+ */
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("articles");
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [tags, setTags] = useState<ArticleTag[]>([]);
-  const [authors, setAuthors] = useState<ArticleAuthor[]>([]);
-  const [images, setImages] = useState<ArticleImage[]>([]);
+  const [contentData, setContentData] = useState({
+    articles: [] as Article[],
+    tags: [] as ArticleTag[],
+    authors: [] as ArticleAuthor[],
+    images: [] as ArticleImage[]
+  });
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Fetch all content data on initial load
   useEffect(() => {
-    const fetchData = async () => {
+    fetchAllData();
+  }, []);
+
+  // Function to refresh all data
+  const fetchAllData = async () => {
+    setIsLoading(true);
+    try {
       const [articlesData, tagsData, authorsData, imagesData] = await Promise.all([
         articleService.getAllArticles(),
         articleService.getAllTags(),
@@ -27,28 +41,22 @@ const Admin = () => {
         articleService.getAllImages(),
       ]);
 
-      setArticles(articlesData);
-      setTags(tagsData);
-      setAuthors(authorsData);
-      setImages(imagesData);
-    };
+      setContentData({
+        articles: articlesData,
+        tags: tagsData,
+        authors: authorsData,
+        images: imagesData
+      });
+    } catch (error) {
+      console.error("Error fetching content data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchData();
-  }, []);
-
-  const refreshData = async () => {
-    const [articlesData, tagsData, authorsData, imagesData] = await Promise.all([
-      articleService.getAllArticles(),
-      articleService.getAllTags(),
-      articleService.getAllAuthors(),
-      articleService.getAllImages(),
-    ]);
-    
-    setArticles(articlesData);
-    setTags(tagsData);
-    setAuthors(authorsData);
-    setImages(imagesData);
-    
+  // Handler for refreshing data
+  const handleRefresh = async () => {
+    await fetchAllData();
     // Reset article selection after successful operations
     setSelectedArticle(null);
     setIsCreatingNew(true);
@@ -85,36 +93,34 @@ const Admin = () => {
             </div>
             
             <ArticlesTab 
-              articles={articles}
-              authors={authors}
-              tags={tags}
-              images={images}
-              onRefresh={refreshData}
+              articles={contentData.articles}
+              authors={contentData.authors}
+              tags={contentData.tags}
+              images={contentData.images}
+              onRefresh={handleRefresh}
               selectedArticle={selectedArticle}
               setSelectedArticle={setSelectedArticle}
               isCreatingNew={isCreatingNew}
               setIsCreatingNew={setIsCreatingNew}
+              isLoading={isLoading}
             />
           </TabsContent>
           
           <TabsContent value="tags">
-            <TagsTab tags={tags} onRefresh={refreshData} />
+            <TagsTab tags={contentData.tags} onRefresh={handleRefresh} />
           </TabsContent>
           
           <TabsContent value="authors">
-            <AuthorsTab authors={authors} onRefresh={refreshData} />
+            <AuthorsTab authors={contentData.authors} onRefresh={handleRefresh} />
           </TabsContent>
           
           <TabsContent value="images">
-            <ImagesTab images={images} onRefresh={refreshData} />
+            <ImagesTab images={contentData.images} onRefresh={handleRefresh} />
           </TabsContent>
         </Tabs>
       </div>
     </MainLayout>
   );
 };
-
-// Fix missing Button import
-import { Button } from "@/components/ui/button";
 
 export default Admin;

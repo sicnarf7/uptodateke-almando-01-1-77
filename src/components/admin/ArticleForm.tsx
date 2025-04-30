@@ -99,42 +99,49 @@ export const ArticleForm = ({
         subcategory: formData.subcategory || undefined
       };
       
-      let updatedArticle: Article;
+      let updatedArticle: Article | null = null;
       
       if (articleToEdit) {
-        // Update existing article
-        updatedArticle = await articleService.updateArticle(articleToEdit.id, articleData);
+        // Fix: Update existing article - updateArticle returns boolean, not Article
+        const updateSuccess = await articleService.updateArticle(articleToEdit.id, articleData);
+        
+        if (updateSuccess) {
+          // If update was successful, use the articleToEdit as base with updated data
+          updatedArticle = { ...articleToEdit, ...articleData };
+        }
       } else {
         // Create new article
         updatedArticle = await articleService.createArticle(articleData as Omit<Article, 'id'>);
       }
       
-      // Add selected tags
-      for (const tagId of selectedTags) {
-        await articleService.addTagToArticle(updatedArticle.id, tagId);
+      if (updatedArticle) {
+        // Add selected tags
+        for (const tagId of selectedTags) {
+          await articleService.addTagToArticle(updatedArticle.id, tagId);
+        }
+        
+        toast.success(`Article ${articleToEdit ? 'updated' : 'created'} successfully`);
+        
+        if (!articleToEdit) {
+          // Reset form only when creating a new article
+          setFormData({
+            title: "",
+            slug: "",
+            excerpt: "",
+            content: "",
+            category: "",
+            subcategory: "",
+            is_premium: false,
+            status: "draft"
+          });
+          setSelectedTags([]);
+          setSelectedAuthor("");
+          setSelectedImage("");
+          setSubcategories([]);
+        }
+        
+        onSuccess();
       }
-      
-      toast.success(`Article ${articleToEdit ? 'updated' : 'created'} successfully`);
-      
-      if (!articleToEdit) {
-        // Reset form only when creating a new article
-        setFormData({
-          title: "",
-          slug: "",
-          excerpt: "",
-          content: "",
-          category: "",
-          subcategory: "",
-          is_premium: false,
-          status: "draft"
-        });
-        setSelectedTags([]);
-        setSelectedAuthor("");
-        setSelectedImage("");
-        setSubcategories([]);
-      }
-      
-      onSuccess();
     } catch (error) {
       console.error(`Error ${articleToEdit ? 'updating' : 'creating'} article:`, error);
       toast.error(`Failed to ${articleToEdit ? 'update' : 'create'} article: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -245,3 +252,4 @@ export const ArticleForm = ({
     </Card>
   );
 };
+

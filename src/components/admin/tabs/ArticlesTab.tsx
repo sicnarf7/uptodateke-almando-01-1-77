@@ -7,7 +7,7 @@ import { ArticleForm } from "@/components/admin/ArticleForm";
 import { Article, ArticleAuthor, ArticleTag, ArticleImage } from "@/types/article";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
-import { Star, Edit, Eye } from "lucide-react";
+import { Star, Edit, Eye, Loader2 } from "lucide-react";
 import { articleService } from "@/services/articleService";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,6 +21,7 @@ interface ArticlesTabProps {
   setSelectedArticle: (article: Article | null) => void;
   isCreatingNew: boolean;
   setIsCreatingNew: (isNew: boolean) => void;
+  isLoading?: boolean;
 }
 
 export const ArticlesTab = ({ 
@@ -32,9 +33,9 @@ export const ArticlesTab = ({
   selectedArticle,
   setSelectedArticle,
   isCreatingNew,
-  setIsCreatingNew
+  setIsCreatingNew,
+  isLoading = false
 }: ArticlesTabProps) => {
-  const [isLoading, setIsLoading] = useState(false);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
   const { toast } = useToast();
   
@@ -80,7 +81,7 @@ export const ArticlesTab = ({
           images={images}
           onSuccess={onRefresh}
           isLoading={isLoading}
-          setIsLoading={setIsLoading}
+          setIsLoading={() => {}} // We're managing loading state at a higher level now
           articleToEdit={selectedArticle}
         />
       </div>
@@ -92,66 +93,72 @@ export const ArticlesTab = ({
             <CardDescription>Manage your articles</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {articles.length === 0 ? (
-                <p className="text-muted-foreground">No articles yet.</p>
-              ) : (
-                articles.map((article) => (
-                  <div key={article.id} className="border-b pb-3 mb-3 last:border-0">
-                    <h3 className="font-medium">{article.title}</h3>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      <Badge variant={article.status === 'published' ? 'default' : 'secondary'}>
-                        {article.status}
-                      </Badge>
-                      {article.is_premium && <Badge variant="outline">Premium</Badge>}
-                      {article.view_count > 100 && <Badge variant="default" className="bg-amber-500">Featured</Badge>}
-                      {article.subcategory && (
-                        <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
-                          {article.subcategory}
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {articles.length === 0 ? (
+                  <p className="text-muted-foreground">No articles yet.</p>
+                ) : (
+                  articles.map((article) => (
+                    <div key={article.id} className="border-b pb-3 mb-3 last:border-0">
+                      <h3 className="font-medium">{article.title}</h3>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        <Badge variant={article.status === 'published' ? 'default' : 'secondary'}>
+                          {article.status}
                         </Badge>
-                      )}
+                        {article.is_premium && <Badge variant="outline">Premium</Badge>}
+                        {article.view_count > 100 && <Badge variant="default" className="bg-amber-500">Featured</Badge>}
+                        {article.subcategory && (
+                          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
+                            {article.subcategory}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {article.category} • {article.published_at ? format(new Date(article.published_at), "MMM d, yyyy") : 'Not published'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Views: {article.view_count}
+                      </p>
+                      <div className="flex mt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          asChild
+                          className="mr-2"
+                        >
+                          <Link to={`/article/${article.slug}`}>
+                            <Eye className="h-3.5 w-3.5 mr-1" /> View
+                          </Link>
+                        </Button>
+                        
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          className="mr-2"
+                          onClick={() => toggleFeature(article)}
+                          disabled={actionInProgress === article.id}
+                        >
+                          <Star className={`h-3.5 w-3.5 mr-1 ${article.view_count > 100 ? 'fill-amber-500' : ''}`} /> 
+                          {article.view_count > 100 ? 'Featured' : 'Feature'}
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditArticle(article)}
+                        >
+                          <Edit className="h-3.5 w-3.5 mr-1" /> Edit
+                        </Button>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {article.category} • {article.published_at ? format(new Date(article.published_at), "MMM d, yyyy") : 'Not published'}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Views: {article.view_count}
-                    </p>
-                    <div className="flex mt-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        asChild
-                        className="mr-2"
-                      >
-                        <Link to={`/article/${article.slug}`}>
-                          <Eye className="h-3.5 w-3.5 mr-1" /> View
-                        </Link>
-                      </Button>
-                      
-                      <Button 
-                        variant="outline"
-                        size="sm"
-                        className="mr-2"
-                        onClick={() => toggleFeature(article)}
-                        disabled={actionInProgress === article.id}
-                      >
-                        <Star className={`h-3.5 w-3.5 mr-1 ${article.view_count > 100 ? 'fill-amber-500' : ''}`} /> 
-                        {article.view_count > 100 ? 'Featured' : 'Feature'}
-                      </Button>
-                      
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditArticle(article)}
-                      >
-                        <Edit className="h-3.5 w-3.5 mr-1" /> Edit
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+                  ))
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
