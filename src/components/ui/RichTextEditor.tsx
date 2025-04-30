@@ -2,9 +2,9 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Button } from './button';
-import { Bold, Italic, List, ListOrdered, Quote, Undo, Redo, Heading, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon } from 'lucide-react';
-import Link from '@tiptap/extension-link';
-import Heading from '@tiptap/extension-heading';
+import { Bold, Italic, List, ListOrdered, Quote, Undo, Redo, Heading as HeadingIcon, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon } from 'lucide-react';
+import LinkExtension from '@tiptap/extension-link';
+import HeadingExtension from '@tiptap/extension-heading';
 import TextAlign from '@tiptap/extension-text-align';
 import { useState } from 'react';
 import { Input } from './input';
@@ -27,11 +27,11 @@ export const RichTextEditor = ({ content, onChange, disabled = false }: RichText
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Link.configure({
+      LinkExtension.configure({
         openOnClick: false,
         linkOnPaste: true,
       }),
-      Heading.configure({
+      HeadingExtension.configure({
         levels: [1, 2, 3],
       }),
       TextAlign.configure({
@@ -95,7 +95,7 @@ export const RichTextEditor = ({ content, onChange, disabled = false }: RichText
           disabled={disabled}
           className={editor.isActive('heading', { level: 2 }) ? 'bg-accent' : ''}
         >
-          <Heading className="h-4 w-4" />
+          <HeadingIcon className="h-4 w-4" />
         </Button>
         
         <Button

@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { ArticleTag } from "@/types/article";
 import { articleService } from "@/services/articleService";
+import { ArticleTag } from "@/types/article";
 import { toast } from "sonner";
 
 interface TagsTabProps {
@@ -18,7 +18,7 @@ export const TagsTab = ({ tags, onRefresh }: TagsTabProps) => {
     name: '',
     slug: ''
   });
-
+  
   const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setTagFormData(prev => ({ ...prev, [name]: value }));
