@@ -47,6 +47,35 @@ class ArticleTagService {
 
     return true;
   }
+
+  async getTagsForArticle(articleId: string): Promise<ArticleTag[]> {
+    const { data, error } = await supabase
+      .from('articles_to_tags')
+      .select('tag_id, article_tags(*)')
+      .eq('article_id', articleId);
+
+    if (error) {
+      console.error('Error fetching tags for article:', error);
+      return [];
+    }
+
+    return data.map(item => item.article_tags) as ArticleTag[];
+  }
+
+  async deleteTagFromArticle(articleId: string, tagId: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('articles_to_tags')
+      .delete()
+      .eq('article_id', articleId)
+      .eq('tag_id', tagId);
+
+    if (error) {
+      console.error('Error removing tag from article:', error);
+      return false;
+    }
+
+    return true;
+  }
 }
 
 export const articleTagService = new ArticleTagService();
