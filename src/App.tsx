@@ -1,10 +1,10 @@
-
 import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { queryClient } from "./lib/queryClient";
 
 // Eager load main layout and loading component
 import MainLayout from "./components/layout/MainLayout";
@@ -33,21 +33,12 @@ const Sitemap = lazy(() => import("./pages/Sitemap"));
 const Sports = lazy(() => import("./pages/Sports"));
 const Business = lazy(() => import("./pages/Business"));
 
-// Loading component
+// Loading component with skeleton loaders
 const PageLoader = () => (
   <div className="flex items-center justify-center w-full h-screen">
     <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
   </div>
 );
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      staleTime: 30000 // 30 seconds
-    },
-  },
-});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

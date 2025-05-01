@@ -8,6 +8,7 @@ interface SEOHeadProps {
   canonicalUrl?: string;
   ogImage?: string;
   noIndex?: boolean;
+  preloadResources?: { href: string; as: string }[];
 }
 
 export const SEOHead: React.FC<SEOHeadProps> = ({
@@ -16,14 +17,32 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   canonicalUrl,
   ogImage = '/og-image.png',
   noIndex = false,
+  preloadResources = [],
 }) => {
   const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const fullCanonicalUrl = canonicalUrl ? `${siteUrl}${canonicalUrl}` : undefined;
+  
+  // Default critical resources to preload
+  const defaultPreloadResources = [
+    { href: '/index.css', as: 'style' }
+  ];
+
+  const allPreloadResources = [...defaultPreloadResources, ...preloadResources];
   
   return (
     <Helmet>
       <title>{title}</title>
       <meta name="description" content={description} />
+      
+      {/* Performance optimizations */}
+      <meta httpEquiv="Cache-Control" content="max-age=86400" />
+      <meta httpEquiv="Expires" content={new Date(Date.now() + 86400000).toUTCString()} />
+      <meta name="theme-color" content="#ffffff" />
+      
+      {/* Preload critical resources */}
+      {allPreloadResources.map((resource, index) => (
+        <link key={index} rel="preload" href={resource.href} as={resource.as} />
+      ))}
       
       {/* Open Graph / Facebook */}
       <meta property="og:type" content="website" />
@@ -42,9 +61,6 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       
       {/* No index if specified */}
       {noIndex && <meta name="robots" content="noindex, nofollow" />}
-      
-      {/* Cache control for better performance */}
-      <meta httpEquiv="Cache-Control" content="max-age=86400" />
     </Helmet>
   );
 };
