@@ -18,3 +18,18 @@ export const getTypedTable = <T extends keyof Database['public']['Tables']>(
 ) => {
   return supabase.from(tableName);
 };
+
+// Add a utility function to check if the Supabase connection is working
+export const checkSupabaseConnection = async () => {
+  try {
+    const { data, error } = await supabase.from('article_tags').select('count').limit(1);
+    if (error) {
+      console.error("Supabase connection error:", error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error("Failed to connect to Supabase:", error);
+    return false;
+  }
+};

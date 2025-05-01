@@ -4,44 +4,62 @@ import { ArticleAuthor } from "@/types/article";
 
 class ArticleAuthorService {
   async getAllAuthors(): Promise<ArticleAuthor[]> {
-    const { data, error } = await getTypedTable('article_authors')
-      .select('*')
-      .order('name');
+    try {
+      console.log("Fetching all authors...");
+      const { data, error } = await getTypedTable('article_authors')
+        .select('*')
+        .order('name');
 
-    if (error) {
-      console.error('Error fetching authors:', error);
+      if (error) {
+        console.error('Error fetching authors:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Exception when fetching authors:', error);
       return [];
     }
-
-    return data;
   }
 
   async getAuthorById(id: string): Promise<ArticleAuthor | null> {
-    const { data, error } = await getTypedTable('article_authors')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
+    try {
+      console.log(`Fetching author with ID: ${id}`);
+      const { data, error } = await getTypedTable('article_authors')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
 
-    if (error) {
-      console.error('Error fetching author:', error);
+      if (error) {
+        console.error('Error fetching author:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Exception when fetching author by ID:', error);
       return null;
     }
-
-    return data;
   }
 
   async createAuthor(author: Omit<ArticleAuthor, 'id'>): Promise<ArticleAuthor | null> {
-    const { data, error } = await getTypedTable('article_authors')
-      .insert(author)
-      .select()
-      .single();
+    try {
+      console.log("Creating new author:", author);
+      const { data, error } = await getTypedTable('article_authors')
+        .insert(author)
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error creating author:', error);
+      if (error) {
+        console.error('Error creating author:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Exception when creating author:', error);
       return null;
     }
-
-    return data;
   }
 }
 

@@ -4,85 +4,121 @@ import { ArticleTag } from "@/types/article";
 
 class ArticleTagService {
   async getAllTags(): Promise<ArticleTag[]> {
-    const { data, error } = await getTypedTable('article_tags')
-      .select('*')
-      .order('name');
+    try {
+      console.log("Fetching all tags...");
+      const { data, error } = await getTypedTable('article_tags')
+        .select('*')
+        .order('name');
 
-    if (error) {
-      console.error('Error fetching tags:', error);
+      if (error) {
+        console.error('Error fetching tags:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Exception when fetching tags:', error);
       return [];
     }
-
-    return data;
   }
 
   async createTag(tag: Omit<ArticleTag, 'id'>): Promise<ArticleTag | null> {
-    const { data, error } = await getTypedTable('article_tags')
-      .insert(tag)
-      .select()
-      .single();
+    try {
+      console.log("Creating new tag:", tag);
+      const { data, error } = await getTypedTable('article_tags')
+        .insert(tag)
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error creating tag:', error);
+      if (error) {
+        console.error('Error creating tag:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Exception when creating tag:', error);
       return null;
     }
-
-    return data;
   }
 
   async addTagToArticle(articleId: string, tagId: string): Promise<boolean> {
-    const { error } = await getTypedTable('articles_to_tags')
-      .insert({
-        article_id: articleId,
-        tag_id: tagId
-      });
+    try {
+      console.log(`Adding tag ${tagId} to article ${articleId}`);
+      const { error } = await getTypedTable('articles_to_tags')
+        .insert({
+          article_id: articleId,
+          tag_id: tagId
+        });
 
-    if (error) {
-      console.error('Error adding tag to article:', error);
+      if (error) {
+        console.error('Error adding tag to article:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Exception when adding tag to article:', error);
       return false;
     }
-
-    return true;
   }
 
   async getTagsForArticle(articleId: string): Promise<ArticleTag[]> {
-    const { data, error } = await getTypedTable('articles_to_tags')
-      .select('tag_id, article_tags(*)')
-      .eq('article_id', articleId);
+    try {
+      console.log(`Fetching tags for article ${articleId}`);
+      const { data, error } = await getTypedTable('articles_to_tags')
+        .select('tag_id, article_tags(*)')
+        .eq('article_id', articleId);
 
-    if (error) {
-      console.error('Error fetching tags for article:', error);
+      if (error) {
+        console.error('Error fetching tags for article:', error);
+        return [];
+      }
+
+      return data.map(item => item.article_tags) as ArticleTag[];
+    } catch (error) {
+      console.error('Exception when fetching tags for article:', error);
       return [];
     }
-
-    return data.map(item => item.article_tags) as ArticleTag[];
   }
 
   async clearTagsForArticle(articleId: string): Promise<boolean> {
-    const { error } = await getTypedTable('articles_to_tags')
-      .delete()
-      .eq('article_id', articleId);
+    try {
+      console.log(`Clearing tags for article ${articleId}`);
+      const { error } = await getTypedTable('articles_to_tags')
+        .delete()
+        .eq('article_id', articleId);
 
-    if (error) {
-      console.error('Error clearing tags for article:', error);
+      if (error) {
+        console.error('Error clearing tags for article:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Exception when clearing tags for article:', error);
       return false;
     }
-    
-    return true;
   }
 
   async deleteTagFromArticle(articleId: string, tagId: string): Promise<boolean> {
-    const { error } = await getTypedTable('articles_to_tags')
-      .delete()
-      .eq('article_id', articleId)
-      .eq('tag_id', tagId);
+    try {
+      console.log(`Removing tag ${tagId} from article ${articleId}`);
+      const { error } = await getTypedTable('articles_to_tags')
+        .delete()
+        .eq('article_id', articleId)
+        .eq('tag_id', tagId);
 
-    if (error) {
-      console.error('Error removing tag from article:', error);
+      if (error) {
+        console.error('Error removing tag from article:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Exception when removing tag from article:', error);
       return false;
     }
-
-    return true;
   }
 }
 
