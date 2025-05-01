@@ -2,78 +2,35 @@
 import MainLayout from "@/components/layout/MainLayout";
 import { NewsCard } from "@/components/ui/NewsCard";
 import TrendingSection from "@/components/ui/TrendingSection";
+import { useState, useEffect } from "react";
+import { Article } from "@/types/article";
+import { articleService } from "@/services/articleService";
+import { format } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Business = () => {
-  // Sample data for business news
-  const businessNews = [
-    {
-      id: 1,
-      title: "Kenya's economy shows 6% growth in first quarter",
-      excerpt: "Central Bank reports positive economic indicators with growth across multiple sectors despite global challenges.",
-      imageUrl: "https://via.placeholder.com/600x400/00008B/FFFFFF?text=Economy",
-      category: "Economy",
-      author: "James Omondi",
-      authorImageUrl: "https://via.placeholder.com/40x40/808080/FFFFFF?text=JO",
-      publishedAt: "2 hours ago",
-      url: "/article/kenya-economy-growth",
-    },
-    {
-      id: 2,
-      title: "Local startup secures $5 million in funding",
-      excerpt: "Nairobi-based fintech company attracts major investment to expand operations across East Africa.",
-      imageUrl: "https://via.placeholder.com/600x400/006400/FFFFFF?text=Startup",
-      category: "Startups",
-      author: "Elizabeth Njeri",
-      authorImageUrl: "https://via.placeholder.com/40x40/808080/FFFFFF?text=EN",
-      publishedAt: "5 hours ago",
-      url: "/article/startup-funding",
-      isPremium: true,
-    },
-    {
-      id: 3,
-      title: "Nairobi Stock Exchange reports record trading day",
-      excerpt: "Investors respond positively to new economic policies with increased trading volumes and rising share prices.",
-      imageUrl: "https://via.placeholder.com/600x400/B8860B/FFFFFF?text=Markets",
-      category: "Markets",
-      author: "Robert Kinyua",
-      authorImageUrl: "https://via.placeholder.com/40x40/808080/FFFFFF?text=RK",
-      publishedAt: "1 day ago",
-      url: "/article/nse-record-trading",
-    },
-    {
-      id: 4,
-      title: "New tax regulations to impact small businesses",
-      excerpt: "Government introduces tax changes with significant implications for SMEs across various sectors.",
-      imageUrl: "https://via.placeholder.com/600x400/8B4513/FFFFFF?text=Tax",
-      category: "Taxation",
-      author: "Mary Akinyi",
-      authorImageUrl: "https://via.placeholder.com/40x40/808080/FFFFFF?text=MA",
-      publishedAt: "2 days ago",
-      url: "/article/tax-small-business",
-    },
-    {
-      id: 5,
-      title: "Kenya and Tanzania sign major trade agreement",
-      excerpt: "Bilateral trade deal expected to boost regional commerce and reduce cross-border trade barriers.",
-      imageUrl: "https://via.placeholder.com/600x400/483D8B/FFFFFF?text=Trade",
-      category: "Trade",
-      author: "Daniel Kimathi",
-      authorImageUrl: "https://via.placeholder.com/40x40/808080/FFFFFF?text=DK",
-      publishedAt: "3 days ago",
-      url: "/article/kenya-tanzania-trade",
-    },
-    {
-      id: 6,
-      title: "Renewable energy investments reach new high",
-      excerpt: "Foreign and local investments in Kenya's renewable energy sector create new jobs and boost green economy.",
-      imageUrl: "https://via.placeholder.com/600x400/2E8B57/FFFFFF?text=Energy",
-      category: "Energy",
-      author: "Sarah Mutua",
-      authorImageUrl: "https://via.placeholder.com/40x40/808080/FFFFFF?text=SM",
-      publishedAt: "4 days ago",
-      url: "/article/renewable-energy",
-    },
-  ];
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      setIsLoading(true);
+      try {
+        const allArticles = await articleService.getAllArticles();
+        // Filter Business category articles
+        const businessArticles = allArticles.filter(
+          article => article.status === 'published' && article.category === 'Business'
+        );
+        setArticles(businessArticles);
+      } catch (error) {
+        console.error("Error fetching business articles:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, []);
 
   return (
     <MainLayout>
@@ -84,23 +41,38 @@ const Business = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {businessNews.map((news) => (
-                <NewsCard
-                  key={news.id}
-                  id={news.id}
-                  title={news.title}
-                  excerpt={news.excerpt}
-                  imageUrl={news.imageUrl}
-                  category={news.category}
-                  author={news.author}
-                  authorImageUrl={news.authorImageUrl}
-                  publishedAt={news.publishedAt}
-                  url={news.url}
-                  isPremium={news.isPremium}
-                />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="h-[350px]">
+                    <Skeleton className="h-full w-full rounded-lg" />
+                  </div>
+                ))}
+              </div>
+            ) : articles.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {articles.map((article) => (
+                  <NewsCard
+                    key={article.id}
+                    id={parseInt(article.id.substring(0, 8), 16)}
+                    title={article.title}
+                    excerpt={article.excerpt}
+                    imageUrl={article.featuredImage?.url || ""}
+                    category={article.category}
+                    author={article.author?.name || ""}
+                    authorImageUrl={article.author?.image_url || ""}
+                    publishedAt={format(new Date(article.published_at || new Date()), "MMMM d, yyyy")}
+                    url={`/article/${article.slug}`}
+                    isPremium={article.is_premium}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-muted/20 rounded-lg">
+                <h3 className="text-xl font-medium mb-2">No Business Articles Yet</h3>
+                <p className="text-muted-foreground">Add business articles from the admin panel to populate this section.</p>
+              </div>
+            )}
           </div>
           
           <div>

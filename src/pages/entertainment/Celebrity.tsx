@@ -1,9 +1,14 @@
 
 import MainLayout from "@/components/layout/MainLayout";
 import { NewsCard } from "@/components/ui/NewsCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Article } from "@/types/article";
+import { articleService } from "@/services/articleService";
+import { format } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
+import ArticleLoading from "@/components/article/ArticleLoading";
 
 interface CelebrityProps {
   type: "local" | "international" | "scandals";
@@ -11,51 +16,31 @@ interface CelebrityProps {
 
 const Celebrity = ({ type = "local" }: CelebrityProps) => {
   const categoryTitle = type.charAt(0).toUpperCase() + type.slice(1);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [celebrities, setCelebrities] = useState([
-    {
-      id: 1,
-      title: type === "local" ? "Kenya's Top Artist Launches New Project" : 
-            type === "international" ? "Hollywood Star to Visit Kenya" : 
-            "Famous Singer Addresses Controversy",
-      excerpt: "The celebrated figure has made headlines with their latest announcement.",
-      imageUrl: "https://via.placeholder.com/600x400",
-      category: "Celebrity",
-      author: "Entertainment Reporter",
-      authorImageUrl: "https://via.placeholder.com/100",
-      publishedAt: "5 hours ago",
-      url: "/article/celebrity-news-item",
-      isPremium: false
-    },
-    {
-      id: 2,
-      title: type === "local" ? "Rising Star Wins Major Award" : 
-            type === "international" ? "Global Icon Announces World Tour" : 
-            "Truth Behind the Viral Rumor",
-      excerpt: "Details about the latest developments in the celebrity world.",
-      imageUrl: "https://via.placeholder.com/600x400",
-      category: "Celebrity",
-      author: "Gossip Columnist",
-      authorImageUrl: "https://via.placeholder.com/100",
-      publishedAt: "1 day ago",
-      url: "/article/celebrity-news-details",
-      isPremium: false
-    },
-    {
-      id: 3,
-      title: type === "local" ? "Actor Signs Major TV Deal" : 
-            type === "international" ? "International Celebrity's Kenyan Connection" : 
-            "Leaked Photos Cause Social Media Stir",
-      excerpt: "The latest news from the entertainment industry that has everyone talking.",
-      imageUrl: "https://via.placeholder.com/600x400",
-      category: "Celebrity",
-      author: "Media Insider",
-      authorImageUrl: "https://via.placeholder.com/100",
-      publishedAt: "2 days ago",
-      url: "/article/major-celebrity-news",
-      isPremium: type === "scandals" ? true : false
-    },
-  ]);
+  useEffect(() => {
+    const fetchArticles = async () => {
+      setIsLoading(true);
+      try {
+        const allArticles = await articleService.getAllArticles();
+        // Filter articles based on category and subcategory
+        const filteredArticles = allArticles.filter(article => 
+          article.category === "Celebrity Gossip" && 
+          (type === "local" && article.subcategory === "Local Stars" ||
+           type === "international" && article.subcategory === "International Stars" ||
+           type === "scandals" && article.subcategory === "Scandals & Rumors")
+        );
+        setArticles(filteredArticles);
+      } catch (error) {
+        console.error("Error fetching articles:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, [type]);
 
   return (
     <MainLayout>
@@ -75,23 +60,38 @@ const Celebrity = ({ type = "local" }: CelebrityProps) => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {celebrities.map((item) => (
-            <NewsCard
-              key={item.id}
-              id={item.id}
-              title={item.title}
-              excerpt={item.excerpt}
-              imageUrl={item.imageUrl}
-              category={item.category}
-              author={item.author}
-              authorImageUrl={item.authorImageUrl}
-              publishedAt={item.publishedAt}
-              url={item.url}
-              isPremium={item.isPremium}
-            />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-[350px]">
+                <Skeleton className="h-full w-full rounded-lg" />
+              </div>
+            ))}
+          </div>
+        ) : articles.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {articles.map((article) => (
+              <NewsCard
+                key={article.id}
+                id={parseInt(article.id.substring(0, 8), 16)}
+                title={article.title}
+                excerpt={article.excerpt}
+                imageUrl={article.featuredImage?.url || ""}
+                category={article.category}
+                author={article.author?.name || ""}
+                authorImageUrl={article.author?.image_url || ""}
+                publishedAt={format(new Date(article.published_at || new Date()), "MMMM d, yyyy")}
+                url={`/article/${article.slug}`}
+                isPremium={article.is_premium}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-muted/20 rounded-lg">
+            <h3 className="text-xl font-medium mb-2">No Celebrity {categoryTitle} Articles Yet</h3>
+            <p className="text-muted-foreground">Add content from the admin panel to populate this section.</p>
+          </div>
+        )}
       </div>
     </MainLayout>
   );

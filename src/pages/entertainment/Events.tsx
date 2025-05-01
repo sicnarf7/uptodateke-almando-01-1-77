@@ -1,10 +1,14 @@
 
 import MainLayout from "@/components/layout/MainLayout";
 import { NewsCard } from "@/components/ui/NewsCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
+import { Article } from "@/types/article";
+import { articleService } from "@/services/articleService";
+import { format } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface EventsProps {
   type: "concerts" | "festivals" | "nightlife" | "featured";
@@ -12,70 +16,32 @@ interface EventsProps {
 
 const Events = ({ type = "concerts" }: EventsProps) => {
   const categoryTitle = type.charAt(0).toUpperCase() + type.slice(1);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [events, setEvents] = useState([
-    {
-      id: 1,
-      title: type === "featured" ? "Biggest Music Festival of the Year" : 
-            `Upcoming ${categoryTitle} in Nairobi`,
-      excerpt: `Details about the exciting ${type === "nightlife" ? "nightclub events" : type} happening in Kenya.`,
-      imageUrl: "https://via.placeholder.com/600x400",
-      category: "Events",
-      author: "Event Organizer",
-      authorImageUrl: "https://via.placeholder.com/100",
-      publishedAt: "2 days ago",
-      url: "/article/upcoming-events",
-      isPremium: type === "featured"
-    },
-    {
-      id: 2,
-      title: `${categoryTitle} Tickets Now Available`,
-      excerpt: "Don't miss out on these popular events - tickets are selling fast!",
-      imageUrl: "https://via.placeholder.com/600x400",
-      category: "Events",
-      author: "Ticket Master",
-      authorImageUrl: "https://via.placeholder.com/100",
-      publishedAt: "1 week ago",
-      url: "/article/event-tickets",
-      isPremium: false
-    },
-    {
-      id: 3,
-      title: `Review: Last Month's ${categoryTitle}`,
-      excerpt: "A look back at the amazing events that took place last month.",
-      imageUrl: "https://via.placeholder.com/600x400",
-      category: "Events",
-      author: "Cultural Critic",
-      authorImageUrl: "https://via.placeholder.com/100",
-      publishedAt: "3 weeks ago",
-      url: "/article/events-review",
-      isPremium: false
-    },
-  ]);
+  useEffect(() => {
+    const fetchArticles = async () => {
+      setIsLoading(true);
+      try {
+        const allArticles = await articleService.getAllArticles();
+        // Filter articles based on category and subcategory
+        const filteredArticles = allArticles.filter(article => 
+          article.category === "Events" && 
+          (type === "concerts" && article.subcategory === "Concerts" ||
+           type === "festivals" && article.subcategory === "Festivals" ||
+           type === "nightlife" && article.subcategory === "Nightlife" ||
+           type === "featured" && article.is_premium) // Premium events are considered featured
+        );
+        setArticles(filteredArticles);
+      } catch (error) {
+        console.error("Error fetching event articles:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const [upcomingEvents, setUpcomingEvents] = useState([
-    {
-      id: 1,
-      name: "Weekend Music Festival",
-      date: "June 15-17, 2025",
-      location: "Uhuru Gardens, Nairobi",
-      category: type
-    },
-    {
-      id: 2,
-      name: "International Artist Concert",
-      date: "July 5, 2025",
-      location: "KICC, Nairobi",
-      category: type
-    },
-    {
-      id: 3,
-      name: "Cultural Festival",
-      date: "August 12, 2025",
-      location: "Nairobi National Museum",
-      category: type
-    },
-  ]);
+    fetchArticles();
+  }, [type]);
 
   return (
     <MainLayout>
@@ -92,34 +58,47 @@ const Events = ({ type = "concerts" }: EventsProps) => {
             <Link to="/entertainment/events/nightlife">
               <Button variant={type === "nightlife" ? "default" : "outline"} size="sm">Nightlife</Button>
             </Link>
-            {type === "featured" && (
-              <Link to="/entertainment/events/featured">
-                <Button variant="default" size="sm">Featured</Button>
-              </Link>
-            )}
+            <Link to="/entertainment/events/featured">
+              <Button variant={type === "featured" ? "default" : "outline"} size="sm">Featured</Button>
+            </Link>
           </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <div className="md:col-span-2">
             <h2 className="text-2xl font-bold mb-6">Featured Events</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {events.map((item) => (
-                <NewsCard
-                  key={item.id}
-                  id={item.id}
-                  title={item.title}
-                  excerpt={item.excerpt}
-                  imageUrl={item.imageUrl}
-                  category={item.category}
-                  author={item.author}
-                  authorImageUrl={item.authorImageUrl}
-                  publishedAt={item.publishedAt}
-                  url={item.url}
-                  isPremium={item.isPremium}
-                />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-[350px]">
+                    <Skeleton className="h-full w-full rounded-lg" />
+                  </div>
+                ))}
+              </div>
+            ) : articles.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {articles.map((article) => (
+                  <NewsCard
+                    key={article.id}
+                    id={parseInt(article.id.substring(0, 8), 16)}
+                    title={article.title}
+                    excerpt={article.excerpt}
+                    imageUrl={article.featuredImage?.url || ""}
+                    category={article.category}
+                    author={article.author?.name || ""}
+                    authorImageUrl={article.author?.image_url || ""}
+                    publishedAt={format(new Date(article.published_at || new Date()), "MMMM d, yyyy")}
+                    url={`/article/${article.slug}`}
+                    isPremium={article.is_premium}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-muted/20 rounded-lg">
+                <h3 className="text-xl font-medium mb-2">No {categoryTitle} Events Yet</h3>
+                <p className="text-muted-foreground">Add events from the admin panel to populate this section.</p>
+              </div>
+            )}
           </div>
           
           <div className="md:col-span-1">
@@ -129,14 +108,9 @@ const Events = ({ type = "concerts" }: EventsProps) => {
                 <h3 className="font-bold text-lg">Upcoming Events</h3>
               </div>
               
-              <div className="divide-y divide-gray-200 dark:divide-gray-800">
-                {upcomingEvents.map((event) => (
-                  <div key={event.id} className="p-4 hover:bg-gray-50 dark:hover:bg-black/20 transition-colors">
-                    <h4 className="font-medium text-base">{event.name}</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{event.date}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{event.location}</p>
-                  </div>
-                ))}
+              <div className="p-6 text-center">
+                <p className="text-muted-foreground">No upcoming events scheduled.</p>
+                <p className="text-xs text-muted-foreground mt-2">Events will appear here once they are added in the admin panel.</p>
               </div>
             </div>
           </div>
