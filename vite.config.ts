@@ -17,6 +17,28 @@ export default defineConfig(({ mode }) => ({
     componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', '*.png', 'og-image.png'],
+      manifest: {
+        name: 'UpTodateKE',
+        short_name: 'UpToDateKE',
+        description: "Kenya's Pulse, Your Playground",
+        theme_color: '#ffffff',
+        icons: [
+          {
+            src: 'favicon.ico',
+            sizes: '64x64',
+            type: 'image/x-icon'
+          },
+          {
+            src: 'og-image.png',
+            sizes: '1200x630',
+            type: 'image/png'
+          }
+        ]
+      },
+      devOptions: {
+        enabled: true
+      },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,gif,webp}'],
         runtimeCaching: [

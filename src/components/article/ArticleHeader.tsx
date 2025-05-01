@@ -1,4 +1,5 @@
 
+import { memo } from "react";
 import { Article } from "@/types/article";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
@@ -7,7 +8,7 @@ interface ArticleHeaderProps {
   article: Article;
 }
 
-const ArticleHeader = ({ article }: ArticleHeaderProps) => (
+const ArticleHeader = memo(({ article }: ArticleHeaderProps) => (
   <>
     <div className="mb-6 flex flex-wrap items-center gap-2">
       <Link to={`/news/${article.category.toLowerCase()}`}>
@@ -33,6 +34,8 @@ const ArticleHeader = ({ article }: ArticleHeaderProps) => (
     
     <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">{article.title}</h1>
   </>
-);
+));
+
+ArticleHeader.displayName = 'ArticleHeader';
 
 export default ArticleHeader;

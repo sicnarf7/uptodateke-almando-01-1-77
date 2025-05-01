@@ -1,12 +1,11 @@
 
-import { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, memo } from "react";
 
 interface ArticleContentProps {
   content: string;
 }
 
-const ArticleContent = ({ content }: ArticleContentProps) => {
+const ArticleContent = memo(({ content }: ArticleContentProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
   
   // Process the article content after render
@@ -26,14 +25,39 @@ const ArticleContent = ({ content }: ArticleContentProps) => {
       });
     });
     
-    // Add lazy loading to images
+    // Add lazy loading to images and optimize loading
     const images = contentRef.current.querySelectorAll('img');
     images.forEach(img => {
       img.setAttribute('loading', 'lazy');
+      img.setAttribute('decoding', 'async');
+      
       if (!img.getAttribute('alt')) {
         img.setAttribute('alt', 'Article image');
       }
+      
+      // Add a lightweight blur-up effect
+      if (!img.className.includes('image-loaded')) {
+        img.style.filter = 'blur(10px)';
+        img.style.transition = 'filter 0.3s ease-out';
+        
+        img.onload = () => {
+          img.style.filter = 'blur(0)';
+          img.classList.add('image-loaded');
+        };
+      }
     });
+    
+    // Return cleanup function
+    return () => {
+      if (contentRef.current) {
+        const images = contentRef.current.querySelectorAll('img');
+        images.forEach(img => {
+          if (img.onload) {
+            img.onload = null;
+          }
+        });
+      }
+    };
   }, [content]);
   
   return (
@@ -43,6 +67,8 @@ const ArticleContent = ({ content }: ArticleContentProps) => {
       dangerouslySetInnerHTML={{ __html: content }}
     />
   );
-};
+});
+
+ArticleContent.displayName = 'ArticleContent';
 
 export default ArticleContent;

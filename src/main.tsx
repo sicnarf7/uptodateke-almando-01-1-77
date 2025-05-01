@@ -3,20 +3,21 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { HelmetProvider } from 'react-helmet-async';
-import { register as registerServiceWorker } from './serviceWorkerRegistration';
+import { register as registerServiceWorker } from 'virtual:pwa-register';
 
-// Register service worker for PWA capabilities and caching
-if (import.meta.env.PROD) {
-  registerServiceWorker({
-    onUpdate: (registration) => {
-      // Notify user about new content if needed
-      if (registration && registration.waiting) {
-        // You could display a UI to let the user know there's an update
-        console.log('New version available! Ready to update.');
-      }
+// Register service worker for PWA capabilities with update notification
+const updateSW = registerServiceWorker({
+  onNeedRefresh() {
+    // Show a toast or notification that there's an update available
+    if (confirm('New content available. Reload to update?')) {
+      updateSW(true);
     }
-  });
-}
+  },
+  onOfflineReady() {
+    console.log('App ready to work offline');
+  },
+  immediate: true
+});
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>

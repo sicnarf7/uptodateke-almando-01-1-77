@@ -8,7 +8,7 @@ interface SEOHeadProps {
   canonicalUrl?: string;
   ogImage?: string;
   noIndex?: boolean;
-  preloadResources?: { href: string; as: string }[];
+  preloadResources?: { href: string; as: string; type?: string; crossOrigin?: string }[];
 }
 
 export const SEOHead: React.FC<SEOHeadProps> = ({
@@ -24,7 +24,8 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   
   // Default critical resources to preload
   const defaultPreloadResources = [
-    { href: '/index.css', as: 'style' }
+    { href: '/index.css', as: 'style' },
+    { href: '/favicon.ico', as: 'image', type: 'image/x-icon' }
   ];
 
   const allPreloadResources = [...defaultPreloadResources, ...preloadResources];
@@ -35,13 +36,24 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       <meta name="description" content={description} />
       
       {/* Performance optimizations */}
-      <meta httpEquiv="Cache-Control" content="max-age=86400" />
+      <meta httpEquiv="Cache-Control" content="public, max-age=86400, s-maxage=31536000" />
       <meta httpEquiv="Expires" content={new Date(Date.now() + 86400000).toUTCString()} />
       <meta name="theme-color" content="#ffffff" />
       
+      {/* Preconnect to important domains */}
+      <link rel="preconnect" href={siteUrl} />
+      <link rel="dns-prefetch" href={siteUrl} />
+      
       {/* Preload critical resources */}
       {allPreloadResources.map((resource, index) => (
-        <link key={index} rel="preload" href={resource.href} as={resource.as} />
+        <link 
+          key={index} 
+          rel="preload" 
+          href={resource.href} 
+          as={resource.as} 
+          type={resource.type} 
+          crossOrigin={resource.crossOrigin}
+        />
       ))}
       
       {/* Open Graph / Facebook */}
