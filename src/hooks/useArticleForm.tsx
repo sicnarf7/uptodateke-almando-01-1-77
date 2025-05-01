@@ -32,8 +32,7 @@ export function useArticleForm({
   // Get article operations
   const {
     handleSubmit,
-    handleDeleteArticle,
-    handleTagChange: handleTagOperation
+    handleDeleteArticle
   } = useArticleOperations({
     articleToEdit,
     onSuccess,
@@ -55,18 +54,18 @@ export function useArticleForm({
 
   return {
     formData,
+    setFormData,
     selectedTags,
+    setSelectedTags,
     selectedAuthor,
+    setSelectedAuthor,
     selectedImage,
+    setSelectedImage,
     subcategories,
     handleSubmit,
     handleDeleteArticle,
     handleCategoryChange,
     handleTagChange,
-    generateSlug,
-    setFormData,
-    setSelectedTags,
-    setSelectedAuthor,
-    setSelectedImage
+    generateSlug
   };
 }

@@ -31,14 +31,6 @@ export function useArticleOperations({
   selectedAuthor,
   selectedImage
 }: UseArticleOperationsProps) {
-  // Handle tag changes
-  const handleTagChange = (tagId: string, checked: boolean) => {
-    if (checked) {
-      return tagId;
-    }
-    return null;
-  };
-
   // Submit form handler
   const handleSubmit = async (e: React.FormEvent, publish: boolean = false) => {
     e.preventDefault();
@@ -73,6 +65,9 @@ export function useArticleOperations({
         if (updateSuccess) {
           // If update was successful, use the articleToEdit as base with updated data
           updatedArticle = { ...articleToEdit, ...articleData };
+          
+          // Clear existing tags first
+          await articleService.clearTagsForArticle(articleToEdit.id);
         }
       } else {
         // Create new article
@@ -115,7 +110,6 @@ export function useArticleOperations({
 
   return {
     handleSubmit,
-    handleDeleteArticle,
-    handleTagChange
+    handleDeleteArticle
   };
 }

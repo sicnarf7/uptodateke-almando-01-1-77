@@ -62,6 +62,20 @@ class ArticleTagService {
     return data.map(item => item.article_tags) as ArticleTag[];
   }
 
+  async clearTagsForArticle(articleId: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('articles_to_tags')
+      .delete()
+      .eq('article_id', articleId);
+
+    if (error) {
+      console.error('Error clearing tags for article:', error);
+      return false;
+    }
+    
+    return true;
+  }
+
   async deleteTagFromArticle(articleId: string, tagId: string): Promise<boolean> {
     const { error } = await supabase
       .from('articles_to_tags')
