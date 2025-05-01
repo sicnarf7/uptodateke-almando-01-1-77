@@ -5,6 +5,7 @@ import { AlertCircle, Database, RefreshCw } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { checkSupabaseConnection } from "@/integrations/supabase/client";
 import { useAdminData } from '@/context/AdminDataContext';
+import { toast } from "sonner";
 
 interface ConnectionStatusAlertProps {
   connectionStatus: boolean | null;

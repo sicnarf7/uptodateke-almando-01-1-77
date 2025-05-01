@@ -19,7 +19,8 @@ export const supabase = createClient<Database>(
       autoRefreshToken: true,
     },
     global: {
-      fetch: (...args) => {
+      // Fix the TypeScript error by properly typing the fetch function
+      fetch: (...args: Parameters<typeof fetch>) => {
         return fetch(...args);
       },
     },
