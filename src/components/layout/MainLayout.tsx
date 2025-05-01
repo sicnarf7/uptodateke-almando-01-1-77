@@ -20,7 +20,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1">
-        {mounted && children}
+        {children}
       </main>
       <Footer />
       <Toaster position="bottom-right" />
