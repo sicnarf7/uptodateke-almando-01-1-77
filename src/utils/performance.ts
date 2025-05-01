@@ -38,18 +38,22 @@ export const getConnectionSpeed = (): 'slow' | 'medium' | 'fast' => {
     return 'medium';
   }
   
-  // @ts-ignore - Not all browsers support Navigator.connection
-  const connection = navigator.connection;
+  // Define NetworkInformation interface
+  interface NetworkInformation {
+    effectiveType?: string;
+    downlink?: number;
+    rtt?: number;
+    saveData?: boolean;
+  }
   
-  if (!connection) return 'medium';
+  // @ts-ignore - Cast navigator.connection to NetworkInformation interface
+  const connection = navigator.connection as NetworkInformation || {};
   
-  const { effectiveType, downlink, rtt, saveData } = connection;
+  if (connection.saveData) return 'slow';
   
-  if (saveData) return 'slow';
-  
-  if (effectiveType === '4g' && downlink >= 1.5 && rtt <= 100) {
+  if (connection.effectiveType === '4g' && connection.downlink && connection.downlink >= 1.5 && connection.rtt && connection.rtt <= 100) {
     return 'fast';
-  } else if (effectiveType === '4g' || effectiveType === '3g' && downlink >= 0.7) {
+  } else if (connection.effectiveType === '4g' || (connection.effectiveType === '3g' && connection.downlink && connection.downlink >= 0.7)) {
     return 'medium';
   } else {
     return 'slow';
@@ -60,7 +64,11 @@ export const getConnectionSpeed = (): 'slow' | 'medium' | 'fast' => {
 export const detectWebpSupport = async (): Promise<boolean> => {
   if (typeof window === 'undefined') return false;
   
-  if ('createImageBitmap' in window && 'avif' in ImageDecoder.supportedMIMETypes) {
+  const hasModernImageSupport = () => {
+    return 'createImageBitmap' in window && 'avif' in (globalThis.ImageDecoder?.supportedMIMETypes || {});
+  };
+  
+  if (hasModernImageSupport()) {
     return true; // Modern browser that supports advanced formats
   }
   

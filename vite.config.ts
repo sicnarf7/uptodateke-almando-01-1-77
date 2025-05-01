@@ -42,7 +42,7 @@ export default defineConfig({
         },
         // Asset file naming
         assetFileNames: (assetInfo) => {
-          const info = assetInfo.name.split('.');
+          const info = assetInfo.name?.split('.') || [];
           const ext = info[info.length - 1];
           if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
             return `assets/images/[name]-[hash][extname]`;
@@ -66,7 +66,8 @@ export default defineConfig({
     target: 'es2018'
   },
   server: {
-    // Enable gzip compression for local development
-    compress: true
+    port: 8080, // Setting port to 8080 as required
+    // Use this property instead of compress
+    middlewareMode: 'html'
   }
 })
