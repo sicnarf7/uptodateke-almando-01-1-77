@@ -1,11 +1,10 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getTypedTable } from "@/integrations/supabase/client";
 import { ArticleAuthor } from "@/types/article";
 
 class ArticleAuthorService {
   async getAllAuthors(): Promise<ArticleAuthor[]> {
-    const { data, error } = await supabase
-      .from('article_authors')
+    const { data, error } = await getTypedTable('article_authors')
       .select('*')
       .order('name');
 
@@ -18,8 +17,7 @@ class ArticleAuthorService {
   }
 
   async getAuthorById(id: string): Promise<ArticleAuthor | null> {
-    const { data, error } = await supabase
-      .from('article_authors')
+    const { data, error } = await getTypedTable('article_authors')
       .select('*')
       .eq('id', id)
       .maybeSingle();
@@ -33,8 +31,7 @@ class ArticleAuthorService {
   }
 
   async createAuthor(author: Omit<ArticleAuthor, 'id'>): Promise<ArticleAuthor | null> {
-    const { data, error } = await supabase
-      .from('article_authors')
+    const { data, error } = await getTypedTable('article_authors')
       .insert(author)
       .select()
       .single();

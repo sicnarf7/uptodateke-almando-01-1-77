@@ -1,11 +1,10 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getTypedTable } from "@/integrations/supabase/client";
 import { Article } from "@/types/article";
 
 class ArticleDataService {
   async getAllArticles(): Promise<Article[]> {
-    const { data: articles, error } = await supabase
-      .from('articles')
+    const { data: articles, error } = await getTypedTable('articles')
       .select(`
         *,
         featuredImage:article_images!featured_image_id(*),
@@ -21,8 +20,7 @@ class ArticleDataService {
     // For each article, fetch its tags
     const articlesWithTags = await Promise.all(
       articles.map(async (article) => {
-        const { data: tags, error: tagsError } = await supabase
-          .from('articles_to_tags')
+        const { data: tags, error: tagsError } = await getTypedTable('articles_to_tags')
           .select(`
             tag_id(*)
           `)
@@ -42,8 +40,7 @@ class ArticleDataService {
   }
 
   async getArticleBySlug(slug: string): Promise<Article | undefined> {
-    const { data: article, error } = await supabase
-      .from('articles')
+    const { data: article, error } = await getTypedTable('articles')
       .select(`
         *,
         featuredImage:article_images!featured_image_id(*),
@@ -65,8 +62,7 @@ class ArticleDataService {
     };
 
     // Fetch tags for the article
-    const { data: tags, error: tagsError } = await supabase
-      .from('articles_to_tags')
+    const { data: tags, error: tagsError } = await getTypedTable('articles_to_tags')
       .select(`
         tag_id(*)
       `)
@@ -79,8 +75,7 @@ class ArticleDataService {
     }
 
     // Fetch related articles
-    const { data: relatedIds, error: relatedError } = await supabase
-      .from('articles_to_related')
+    const { data: relatedIds, error: relatedError } = await getTypedTable('articles_to_related')
       .select('related_article_id')
       .eq('article_id', article.id);
 
@@ -88,8 +83,7 @@ class ArticleDataService {
       console.error('Error fetching related articles:', relatedError);
     } else if (relatedIds.length > 0) {
       const relatedArticleIds = relatedIds.map(rel => rel.related_article_id);
-      const { data: relatedArticles, error: fetchError } = await supabase
-        .from('articles')
+      const { data: relatedArticles, error: fetchError } = await getTypedTable('articles')
         .select(`
           *,
           featuredImage:article_images!featured_image_id(*),
@@ -105,8 +99,7 @@ class ArticleDataService {
     }
 
     // Increment view count
-    const { error: updateError } = await supabase
-      .from('articles')
+    const { error: updateError } = await getTypedTable('articles')
       .update({ view_count: (article.view_count || 0) + 1 })
       .eq('id', article.id);
 
@@ -123,8 +116,7 @@ class ArticleDataService {
     }
 
     // If no predefined related articles, fetch by category
-    const { data: relatedArticles, error } = await supabase
-      .from('articles')
+    const { data: relatedArticles, error } = await getTypedTable('articles')
       .select(`
         *,
         featuredImage:article_images!featured_image_id(*),
@@ -143,8 +135,7 @@ class ArticleDataService {
   }
 
   async createArticle(article: Omit<Article, 'id'>): Promise<Article | null> {
-    const { data, error } = await supabase
-      .from('articles')
+    const { data, error } = await getTypedTable('articles')
       .insert(article)
       .select()
       .single();
@@ -158,8 +149,7 @@ class ArticleDataService {
   }
 
   async updateArticle(id: string, article: Partial<Article>): Promise<boolean> {
-    const { error } = await supabase
-      .from('articles')
+    const { error } = await getTypedTable('articles')
       .update(article)
       .eq('id', id);
 
@@ -172,8 +162,7 @@ class ArticleDataService {
   }
 
   async deleteArticle(id: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('articles')
+    const { error } = await getTypedTable('articles')
       .delete()
       .eq('id', id);
 

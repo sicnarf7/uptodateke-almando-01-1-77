@@ -1,11 +1,10 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getTypedTable } from "@/integrations/supabase/client";
 import { ArticleImage } from "@/types/article";
 
 class ArticleImageService {
   async getAllImages(): Promise<ArticleImage[]> {
-    const { data, error } = await supabase
-      .from('article_images')
+    const { data, error } = await getTypedTable('article_images')
       .select('*')
       .order('id', { ascending: false });
 
@@ -44,8 +43,7 @@ class ArticleImageService {
       credit
     };
 
-    const { data, error } = await supabase
-      .from('article_images')
+    const { data, error } = await getTypedTable('article_images')
       .insert(imageData)
       .select()
       .single();

@@ -1,11 +1,10 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, getTypedTable } from "@/integrations/supabase/client";
 import { ArticleTag } from "@/types/article";
 
 class ArticleTagService {
   async getAllTags(): Promise<ArticleTag[]> {
-    const { data, error } = await supabase
-      .from('article_tags')
+    const { data, error } = await getTypedTable('article_tags')
       .select('*')
       .order('name');
 
@@ -18,8 +17,7 @@ class ArticleTagService {
   }
 
   async createTag(tag: Omit<ArticleTag, 'id'>): Promise<ArticleTag | null> {
-    const { data, error } = await supabase
-      .from('article_tags')
+    const { data, error } = await getTypedTable('article_tags')
       .insert(tag)
       .select()
       .single();
@@ -33,8 +31,7 @@ class ArticleTagService {
   }
 
   async addTagToArticle(articleId: string, tagId: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('articles_to_tags')
+    const { error } = await getTypedTable('articles_to_tags')
       .insert({
         article_id: articleId,
         tag_id: tagId
@@ -49,8 +46,7 @@ class ArticleTagService {
   }
 
   async getTagsForArticle(articleId: string): Promise<ArticleTag[]> {
-    const { data, error } = await supabase
-      .from('articles_to_tags')
+    const { data, error } = await getTypedTable('articles_to_tags')
       .select('tag_id, article_tags(*)')
       .eq('article_id', articleId);
 
@@ -63,8 +59,7 @@ class ArticleTagService {
   }
 
   async clearTagsForArticle(articleId: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('articles_to_tags')
+    const { error } = await getTypedTable('articles_to_tags')
       .delete()
       .eq('article_id', articleId);
 
@@ -77,8 +72,7 @@ class ArticleTagService {
   }
 
   async deleteTagFromArticle(articleId: string, tagId: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('articles_to_tags')
+    const { error } = await getTypedTable('articles_to_tags')
       .delete()
       .eq('article_id', articleId)
       .eq('tag_id', tagId);
