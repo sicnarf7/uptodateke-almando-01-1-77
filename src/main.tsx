@@ -1,26 +1,15 @@
 
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
-import { HelmetProvider } from 'react-helmet-async';
-import { register as registerServiceWorker } from 'virtual:pwa-register';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+import { registerServiceWorker } from './serviceWorkerRegistration';
 
-// Register service worker for PWA capabilities with update notification
-const updateSW = registerServiceWorker({
-  onNeedRefresh() {
-    // Show a toast or notification that there's an update available
-    if (confirm('New content available. Reload to update?')) {
-      updateSW(true);
-    }
-  },
-  onOfflineReady() {
-    console.log('App ready to work offline');
-  },
-  immediate: true
-});
+// Register service worker for production
+registerServiceWorker();
 
-createRoot(document.getElementById("root")!).render(
-  <HelmetProvider>
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
     <App />
-  </HelmetProvider>
+  </React.StrictMode>
 );
