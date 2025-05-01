@@ -66,8 +66,7 @@ export default defineConfig({
     target: 'es2018'
   },
   server: {
-    port: 8080, // Setting port to 8080 as required
-    // Use this property instead of compress
-    middlewareMode: 'html'
+    port: 8080 // Setting port to 8080 as required
+    // Removed middlewareMode as it was causing a type error
   }
 })

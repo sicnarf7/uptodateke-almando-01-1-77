@@ -2,13 +2,20 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
+interface PreloadResource {
+  href: string;
+  as: string;
+  type?: string;
+  crossOrigin?: string;
+}
+
 interface SEOHeadProps {
   title?: string;
   description?: string;
   canonicalUrl?: string;
   ogImage?: string;
   noIndex?: boolean;
-  preloadResources?: { href: string; as: string; type?: string; crossOrigin?: string }[];
+  preloadResources?: PreloadResource[];
 }
 
 export const SEOHead: React.FC<SEOHeadProps> = ({
@@ -23,7 +30,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   const fullCanonicalUrl = canonicalUrl ? `${siteUrl}${canonicalUrl}` : undefined;
   
   // Default critical resources to preload
-  const defaultPreloadResources = [
+  const defaultPreloadResources: PreloadResource[] = [
     { href: '/index.css', as: 'style' },
     { href: '/favicon.ico', as: 'image', type: 'image/x-icon' }
   ];
