@@ -37,14 +37,19 @@ export const ArticleContentFields = ({
       
       <div className="space-y-2">
         <Label htmlFor="content">Content*</Label>
-        <RichTextEditor
-          content={content}
-          onChange={(newContent) => {
-            console.log('RichTextEditor onChange called with:', newContent);
-            onContentChange(newContent);
-          }}
-          disabled={isLoading}
-        />
+        <div className="border rounded-md mb-1 bg-background">
+          <RichTextEditor
+            content={content}
+            onChange={(newContent) => {
+              console.log('RichTextEditor onChange called with:', newContent);
+              onContentChange(newContent);
+            }}
+            disabled={isLoading}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Use the toolbar to format your content with headings, lists, quotes, and more.
+        </p>
       </div>
     </>
   );

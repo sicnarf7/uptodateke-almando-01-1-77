@@ -11,7 +11,7 @@ export const EditorContent = ({ editor, disabled = false }: EditorContentProps) 
   return (
     <TiptapEditorContent 
       editor={editor} 
-      className={`p-4 min-h-[300px] prose dark:prose-invert max-w-none ${disabled ? 'opacity-70 cursor-not-allowed bg-muted/50' : ''}`} 
+      className={`p-4 min-h-[300px] prose dark:prose-invert max-w-none ${disabled ? 'opacity-70 cursor-not-allowed bg-muted/50' : 'focus:outline-none'}`} 
     />
   );
 };

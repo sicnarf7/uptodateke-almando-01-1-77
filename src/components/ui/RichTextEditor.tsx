@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { useEditor } from '@tiptap/react';
+import { useEditor, EditorContent as TiptapEditorContent } from '@tiptap/react';
 import { EditorToolbar } from './editor/EditorToolbar';
 import { EditorContent } from './editor/EditorContent';
 import { getEditorExtensions } from './editor/EditorExtensions';
@@ -14,9 +14,10 @@ interface RichTextEditorProps {
 export const RichTextEditor = ({ content, onChange, disabled = false }: RichTextEditorProps) => {
   const editor = useEditor({
     extensions: getEditorExtensions(),
-    content,
+    content: content || '<p></p>', // Ensure we always have valid content
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
+      const newContent = editor.getHTML();
+      onChange(newContent);
     },
     editable: !disabled,
   });
@@ -24,9 +25,17 @@ export const RichTextEditor = ({ content, onChange, disabled = false }: RichText
   // Update editor content when the content prop changes
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content);
+      // Only update content if it's different to prevent cursor jumping
+      editor.commands.setContent(content || '<p></p>');
     }
   }, [content, editor]);
+
+  // Add another effect to ensure editor is updated when disabled state changes
+  useEffect(() => {
+    if (editor) {
+      editor.setEditable(!disabled);
+    }
+  }, [disabled, editor]);
 
   if (!editor) {
     return null;
