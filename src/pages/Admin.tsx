@@ -9,6 +9,7 @@ import { ArticlesTab } from "@/components/admin/tabs/ArticlesTab";
 import { AuthorsTab } from "@/components/admin/tabs/AuthorsTab";
 import { TagsTab } from "@/components/admin/tabs/TagsTab";
 import { ImagesTab } from "@/components/admin/tabs/ImagesTab";
+import { Helmet } from "react-helmet";
 
 /**
  * Admin dashboard with content management system tabs
@@ -24,6 +25,7 @@ const Admin = () => {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [resetFormKey, setResetFormKey] = useState(0); // Add a key to force re-render of form
 
   // Fetch all content data on initial load
   useEffect(() => {
@@ -60,10 +62,23 @@ const Admin = () => {
     // Reset article selection after successful operations
     setSelectedArticle(null);
     setIsCreatingNew(true);
+    setResetFormKey(prev => prev + 1); // Increment to force a form reset
+  };
+
+  // Handle creating a new article
+  const handleCreateNew = () => {
+    setSelectedArticle(null);
+    setIsCreatingNew(true);
+    setResetFormKey(prev => prev + 1); // Increment to force a form reset
   };
 
   return (
     <MainLayout>
+      <Helmet>
+        <title>Admin Dashboard - UpTodateKE</title>
+        <meta name="description" content="Admin dashboard for managing UpTodateKE articles, tags, authors, and images." />
+        <meta name="robots" content="noindex, nofollow" /> {/* Don't index admin pages */}
+      </Helmet>
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">Content Management System</h1>
         
@@ -80,10 +95,7 @@ const Admin = () => {
               <h2 className="text-xl font-semibold">{isCreatingNew ? 'Create New Article' : 'Edit Article'}</h2>
               {!isCreatingNew && (
                 <Button 
-                  onClick={() => {
-                    setSelectedArticle(null);
-                    setIsCreatingNew(true);
-                  }}
+                  onClick={handleCreateNew}
                   variant="default"
                   size="sm"
                 >
@@ -93,6 +105,7 @@ const Admin = () => {
             </div>
             
             <ArticlesTab 
+              key={resetFormKey}
               articles={contentData.articles}
               authors={contentData.authors}
               tags={contentData.tags}

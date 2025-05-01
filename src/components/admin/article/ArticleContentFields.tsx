@@ -19,9 +19,6 @@ export const ArticleContentFields = ({
   onExcerptChange,
   onContentChange,
 }: ArticleContentFieldsProps) => {
-  // This console log helps us debug what content is coming in
-  console.log('Content passed to ArticleContentFields:', content);
-  
   return (
     <>
       <div className="space-y-2">
@@ -30,9 +27,14 @@ export const ArticleContentFields = ({
           id="excerpt" 
           value={excerpt}
           onChange={(e) => onExcerptChange(e.target.value)}
+          placeholder="Write a short summary of your article"
           required
           disabled={isLoading}
+          className="resize-y min-h-[100px]"
         />
+        <p className="text-xs text-muted-foreground">
+          A brief summary that will appear on article previews
+        </p>
       </div>
       
       <div className="space-y-2">
@@ -40,10 +42,7 @@ export const ArticleContentFields = ({
         <div className="border rounded-md mb-1 bg-background">
           <RichTextEditor
             content={content}
-            onChange={(newContent) => {
-              console.log('RichTextEditor onChange called with:', newContent);
-              onContentChange(newContent);
-            }}
+            onChange={onContentChange}
             disabled={isLoading}
           />
         </div>

@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, memo } from 'react';
 import { useEditor, EditorContent as TiptapEditorContent } from '@tiptap/react';
 import { EditorToolbar } from './editor/EditorToolbar';
 import { EditorContent } from './editor/EditorContent';
@@ -11,13 +11,16 @@ interface RichTextEditorProps {
   disabled?: boolean;
 }
 
-export const RichTextEditor = ({ content, onChange, disabled = false }: RichTextEditorProps) => {
+// Use memo to prevent unnecessary re-renders
+export const RichTextEditor = memo(({ content, onChange, disabled = false }: RichTextEditorProps) => {
   const editor = useEditor({
     extensions: getEditorExtensions(),
     content: content || '<p></p>', // Ensure we always have valid content
     onUpdate: ({ editor }) => {
       const newContent = editor.getHTML();
-      onChange(newContent);
+      if (newContent !== content) {
+        onChange(newContent);
+      }
     },
     editable: !disabled,
   });
@@ -47,4 +50,6 @@ export const RichTextEditor = ({ content, onChange, disabled = false }: RichText
       <EditorContent editor={editor} disabled={disabled} />
     </div>
   );
-};
+});
+
+RichTextEditor.displayName = 'RichTextEditor';

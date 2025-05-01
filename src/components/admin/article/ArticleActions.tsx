@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, Save, Trash2 } from 'lucide-react';
+import { Loader2, Save, Trash2, Send } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -101,7 +101,10 @@ export const ArticleActions = ({
             Publishing...
           </>
         ) : (
-          isEditing ? 'Update & Publish' : 'Publish'
+          <>
+            <Send className="mr-2 h-4 w-4" />
+            {isEditing ? 'Update & Publish' : 'Publish'}
+          </>
         )}
       </Button>
     </div>

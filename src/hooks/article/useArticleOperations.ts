@@ -44,8 +44,9 @@ export function useArticleOperations({
     try {
       setIsLoading(true);
       const status = publish ? "published" : "draft";
-      const publishedAt = publish ? new Date().toISOString() : null;
+      const publishedAt = publish ? new Date().toISOString() : articleToEdit?.published_at || null;
       
+      // Remove the subcategory field if it's empty to avoid database errors
       const articleData = {
         ...formData,
         status,
@@ -53,8 +54,12 @@ export function useArticleOperations({
         author_id: selectedAuthor,
         featured_image_id: selectedImage,
         view_count: articleToEdit ? articleToEdit.view_count : 0,
-        subcategory: formData.subcategory || undefined
       };
+
+      // Only include subcategory if it has a value
+      if (formData.subcategory) {
+        Object.assign(articleData, { subcategory: formData.subcategory });
+      }
       
       let updatedArticle: Article | null = null;
       
