@@ -1,6 +1,5 @@
 
 import MainLayout from "@/components/layout/MainLayout";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const Videos = () => {
   return (

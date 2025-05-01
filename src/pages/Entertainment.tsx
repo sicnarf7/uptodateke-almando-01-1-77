@@ -1,42 +1,33 @@
 
 import MainLayout from "@/components/layout/MainLayout";
 import { NewsCard } from "@/components/ui/NewsCard";
-import { VideoCard } from "@/components/ui/VideoCard";
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Article } from "@/types/article";
-import { articleService } from "@/services/articleService";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useArticles } from "@/hooks/useArticles";
 
 const Entertainment = () => {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchArticles = async () => {
-      setIsLoading(true);
-      try {
-        const allArticles = await articleService.getAllArticles();
-        // Filter published Entertainment category articles
-        const entertainmentArticles = allArticles.filter(
-          article => article.status === 'published' && 
-                    (article.category === 'Entertainment' || 
-                     article.category === 'Celebrity Gossip' || 
-                     article.category === 'Music' || 
-                     article.category === 'Events')
-        );
-        setArticles(entertainmentArticles);
-      } catch (error) {
-        console.error("Error fetching entertainment articles:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchArticles();
-  }, []);
+  const { articles, isLoading } = useArticles({
+    category: 'Entertainment'
+  });
+  
+  // We also want to include related categories
+  const { articles: celebrityArticles, isLoading: isLoadingCelebrity } = useArticles({
+    category: 'Celebrity Gossip'
+  });
+  
+  const { articles: musicArticles, isLoading: isLoadingMusic } = useArticles({
+    category: 'Music'
+  });
+  
+  const { articles: eventsArticles, isLoading: isLoadingEvents } = useArticles({
+    category: 'Events'
+  });
+  
+  // Combine all entertainment related articles
+  const allEntertainmentArticles = [...articles, ...celebrityArticles, ...musicArticles, ...eventsArticles];
+  const isLoadingAny = isLoading || isLoadingCelebrity || isLoadingMusic || isLoadingEvents;
 
   return (
     <MainLayout>
@@ -58,7 +49,7 @@ const Entertainment = () => {
 
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Featured Stories</h2>
-          {isLoading ? (
+          {isLoadingAny ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2].map((i) => (
                 <div key={i} className="h-[350px]">
@@ -66,9 +57,9 @@ const Entertainment = () => {
                 </div>
               ))}
             </div>
-          ) : articles.length > 0 ? (
+          ) : allEntertainmentArticles.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {articles.slice(0, 3).map((article) => (
+              {allEntertainmentArticles.slice(0, 3).map((article) => (
                 <NewsCard
                   key={article.id}
                   id={parseInt(article.id.substring(0, 8), 16)}

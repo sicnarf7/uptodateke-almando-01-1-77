@@ -1,14 +1,11 @@
 
+import { SubcategoryLink } from "@/components/category/CategoryPage";
+import CategoryPage from "@/components/category/CategoryPage";
 import MainLayout from "@/components/layout/MainLayout";
-import { NewsCard } from "@/components/ui/NewsCard";
-import { VideoCard } from "@/components/ui/VideoCard";
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Article } from "@/types/article";
-import { articleService } from "@/services/articleService";
-import { format } from "date-fns";
+import { useArticles } from "@/hooks/useArticles";
 import { Skeleton } from "@/components/ui/skeleton";
+import { NewsCard } from "@/components/ui/NewsCard";
+import { format } from "date-fns";
 
 interface MusicProps {
   type: "gengetone" | "gospel" | "afrobeats";
@@ -16,31 +13,39 @@ interface MusicProps {
 
 const Music = ({ type = "gengetone" }: MusicProps) => {
   const categoryTitle = type.charAt(0).toUpperCase() + type.slice(1);
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchArticles = async () => {
-      setIsLoading(true);
-      try {
-        const allArticles = await articleService.getAllArticles();
-        // Filter articles based on category and subcategory
-        const filteredArticles = allArticles.filter(article => 
-          article.category === "Music" && 
-          (type === "gengetone" && article.subcategory === "Gengetone" ||
-           type === "gospel" && article.subcategory === "Gospel" ||
-           type === "afrobeats" && article.subcategory === "Afrobeats")
-        );
-        setArticles(filteredArticles);
-      } catch (error) {
-        console.error("Error fetching music articles:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchArticles();
-  }, [type]);
+  
+  // Define subcategory mapping
+  const subcategoryMap: Record<string, string> = {
+    "gengetone": "Gengetone",
+    "gospel": "Gospel",
+    "afrobeats": "Afrobeats"
+  };
+  
+  const subcategory = subcategoryMap[type];
+  
+  // Define subcategory navigation links
+  const subcategoryLinks: SubcategoryLink[] = [
+    {
+      label: "Gengetone",
+      value: "Gengetone",
+      path: "/entertainment/music/gengetone"
+    },
+    {
+      label: "Gospel",
+      value: "Gospel",
+      path: "/entertainment/music/gospel"
+    },
+    {
+      label: "Afrobeats",
+      value: "Afrobeats",
+      path: "/entertainment/music/afrobeats"
+    }
+  ];
+  
+  const { articles, isLoading } = useArticles({
+    category: "Music",
+    subcategory
+  });
 
   return (
     <MainLayout>
@@ -48,15 +53,19 @@ const Music = ({ type = "gengetone" }: MusicProps) => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <h1 className="text-3xl font-bold mb-4 md:mb-0">Music - {categoryTitle}</h1>
           <div className="flex flex-wrap gap-2">
-            <Link to="/entertainment/music/gengetone">
-              <Button variant={type === "gengetone" ? "default" : "outline"} size="sm">Gengetone</Button>
-            </Link>
-            <Link to="/entertainment/music/gospel">
-              <Button variant={type === "gospel" ? "default" : "outline"} size="sm">Gospel</Button>
-            </Link>
-            <Link to="/entertainment/music/afrobeats">
-              <Button variant={type === "afrobeats" ? "default" : "outline"} size="sm">Afrobeats</Button>
-            </Link>
+            {subcategoryLinks.map((link) => (
+              <a key={link.value} href={link.path}>
+                <button 
+                  className={`px-4 py-1 text-sm rounded-full ${
+                    subcategory === link.value 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  }`}
+                >
+                  {link.label}
+                </button>
+              </a>
+            ))}
           </div>
         </div>
         

@@ -1,14 +1,12 @@
 
+import { SubcategoryLink } from "@/components/category/CategoryPage";
+import CategoryPage from "@/components/category/CategoryPage";
 import MainLayout from "@/components/layout/MainLayout";
-import { NewsCard } from "@/components/ui/NewsCard";
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
-import { Article } from "@/types/article";
-import { articleService } from "@/services/articleService";
-import { format } from "date-fns";
+import { useArticles } from "@/hooks/useArticles";
+import { NewsCard } from "@/components/ui/NewsCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
 
 interface EventsProps {
   type: "concerts" | "festivals" | "nightlife" | "featured";
@@ -16,32 +14,47 @@ interface EventsProps {
 
 const Events = ({ type = "concerts" }: EventsProps) => {
   const categoryTitle = type.charAt(0).toUpperCase() + type.slice(1);
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchArticles = async () => {
-      setIsLoading(true);
-      try {
-        const allArticles = await articleService.getAllArticles();
-        // Filter articles based on category and subcategory
-        const filteredArticles = allArticles.filter(article => 
-          article.category === "Events" && 
-          (type === "concerts" && article.subcategory === "Concerts" ||
-           type === "festivals" && article.subcategory === "Festivals" ||
-           type === "nightlife" && article.subcategory === "Nightlife" ||
-           type === "featured" && article.is_premium) // Premium events are considered featured
-        );
-        setArticles(filteredArticles);
-      } catch (error) {
-        console.error("Error fetching event articles:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchArticles();
-  }, [type]);
+  
+  // Define subcategory mapping
+  const subcategoryMap: Record<string, string> = {
+    "concerts": "Concerts",
+    "festivals": "Festivals",
+    "nightlife": "Nightlife"
+  };
+  
+  // For featured, we'll use isPremium instead of subcategory
+  const subcategory = type !== "featured" ? subcategoryMap[type] : undefined;
+  const isPremium = type === "featured" ? true : undefined;
+  
+  // Define subcategory navigation links
+  const subcategoryLinks: SubcategoryLink[] = [
+    {
+      label: "Concerts",
+      value: "Concerts",
+      path: "/entertainment/events/concerts"
+    },
+    {
+      label: "Festivals",
+      value: "Festivals",
+      path: "/entertainment/events/festivals"
+    },
+    {
+      label: "Nightlife",
+      value: "Nightlife",
+      path: "/entertainment/events/nightlife"
+    },
+    {
+      label: "Featured",
+      value: "featured",
+      path: "/entertainment/events/featured"
+    }
+  ];
+  
+  const { articles, isLoading } = useArticles({
+    category: "Events",
+    subcategory,
+    isPremium
+  });
 
   return (
     <MainLayout>
@@ -49,18 +62,20 @@ const Events = ({ type = "concerts" }: EventsProps) => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <h1 className="text-3xl font-bold mb-4 md:mb-0">Events - {categoryTitle}</h1>
           <div className="flex flex-wrap gap-2">
-            <Link to="/entertainment/events/concerts">
-              <Button variant={type === "concerts" ? "default" : "outline"} size="sm">Concerts</Button>
-            </Link>
-            <Link to="/entertainment/events/festivals">
-              <Button variant={type === "festivals" ? "default" : "outline"} size="sm">Festivals</Button>
-            </Link>
-            <Link to="/entertainment/events/nightlife">
-              <Button variant={type === "nightlife" ? "default" : "outline"} size="sm">Nightlife</Button>
-            </Link>
-            <Link to="/entertainment/events/featured">
-              <Button variant={type === "featured" ? "default" : "outline"} size="sm">Featured</Button>
-            </Link>
+            {subcategoryLinks.map((link) => (
+              <a key={link.value} href={link.path}>
+                <button 
+                  className={`px-4 py-1 text-sm rounded-full ${
+                    (type === "featured" && link.value === "featured") || 
+                    (type !== "featured" && subcategory === link.value) 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  }`}
+                >
+                  {link.label}
+                </button>
+              </a>
+            ))}
           </div>
         </div>
         
