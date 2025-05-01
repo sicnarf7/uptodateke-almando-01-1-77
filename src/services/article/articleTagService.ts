@@ -1,6 +1,7 @@
 
 import { supabase, getTypedTable } from "@/integrations/supabase/client";
 import { ArticleTag } from "@/types/article";
+import { toast } from "sonner";
 
 class ArticleTagService {
   async getAllTags(): Promise<ArticleTag[]> {
@@ -12,6 +13,7 @@ class ArticleTagService {
 
       if (error) {
         console.error('Error fetching tags:', error);
+        toast.error('Could not load tags: ' + error.message);
         return [];
       }
 
@@ -19,6 +21,7 @@ class ArticleTagService {
       return data || [];
     } catch (error) {
       console.error('Exception when fetching tags:', error);
+      toast.error('Failed to fetch tags');
       return [];
     }
   }
@@ -30,6 +33,7 @@ class ArticleTagService {
       // Validate required fields
       if (!tag.name || !tag.slug) {
         console.error("Missing required fields for tag creation");
+        toast.error("Please fill all required fields");
         return null;
       }
       
@@ -40,13 +44,16 @@ class ArticleTagService {
 
       if (error) {
         console.error('Error creating tag:', error);
+        toast.error(`Failed to create tag: ${error.message}`);
         return null;
       }
 
       console.log("Tag created successfully:", data);
+      toast.success("Tag created successfully");
       return data;
     } catch (error) {
       console.error('Exception when creating tag:', error);
+      toast.error(`Failed to create tag: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return null;
     }
   }
@@ -62,12 +69,14 @@ class ArticleTagService {
 
       if (error) {
         console.error('Error adding tag to article:', error);
+        toast.error(`Failed to add tag to article: ${error.message}`);
         return false;
       }
 
       return true;
     } catch (error) {
       console.error('Exception when adding tag to article:', error);
+      toast.error(`Failed to add tag: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
   }
@@ -81,12 +90,14 @@ class ArticleTagService {
 
       if (error) {
         console.error('Error fetching tags for article:', error);
+        toast.error(`Failed to fetch tags: ${error.message}`);
         return [];
       }
 
       return data.map(item => item.article_tags) as ArticleTag[];
     } catch (error) {
       console.error('Exception when fetching tags for article:', error);
+      toast.error('Failed to fetch article tags');
       return [];
     }
   }
@@ -100,12 +111,14 @@ class ArticleTagService {
 
       if (error) {
         console.error('Error clearing tags for article:', error);
+        toast.error(`Failed to clear tags: ${error.message}`);
         return false;
       }
       
       return true;
     } catch (error) {
       console.error('Exception when clearing tags for article:', error);
+      toast.error(`Failed to clear tags: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
   }
@@ -120,12 +133,14 @@ class ArticleTagService {
 
       if (error) {
         console.error('Error removing tag from article:', error);
+        toast.error(`Failed to remove tag: ${error.message}`);
         return false;
       }
 
       return true;
     } catch (error) {
       console.error('Exception when removing tag from article:', error);
+      toast.error(`Failed to remove tag: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return false;
     }
   }

@@ -5,17 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ArticleAuthor } from "@/types/article";
 import { articleService } from "@/services/articleService";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useAdminData } from "@/context/AdminDataContext";
 
-interface AuthorsTabProps {
-  authors: ArticleAuthor[];
-  onRefresh: () => void;
-}
-
-export const AuthorsTab = ({ authors, onRefresh }: AuthorsTabProps) => {
+export const AuthorsTab = () => {
+  const { contentData, handleRefresh } = useAdminData();
+  const { authors } = contentData;
+  
   const [authorFormData, setAuthorFormData] = useState<{
     name: string;
     image_url: string;
@@ -61,7 +59,7 @@ export const AuthorsTab = ({ authors, onRefresh }: AuthorsTabProps) => {
         console.log("AuthorsTab: Author created successfully:", newAuthor);
         toast.success("Author created successfully");
         setAuthorFormData({ name: '', image_url: '', role: '', bio: '' });
-        onRefresh();
+        handleRefresh();
       } else {
         console.error("AuthorsTab: Failed to create author - no error but no author returned");
         setFormError("Failed to create author - please check the console for more details");

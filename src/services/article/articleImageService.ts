@@ -1,6 +1,7 @@
 
 import { supabase, getTypedTable } from "@/integrations/supabase/client";
 import { ArticleImage } from "@/types/article";
+import { toast } from "sonner";
 
 class ArticleImageService {
   async getAllImages(): Promise<ArticleImage[]> {
@@ -12,6 +13,7 @@ class ArticleImageService {
 
       if (error) {
         console.error('Error fetching images:', error);
+        toast.error('Could not load images: ' + error.message);
         return [];
       }
 
@@ -19,16 +21,22 @@ class ArticleImageService {
       return data || [];
     } catch (error) {
       console.error('Exception when fetching images:', error);
+      toast.error('Failed to fetch images');
       return [];
     }
   }
 
-  async uploadImage(file: File, alt: string, caption?: string, credit?: string): Promise<ArticleImage | null> {
+  async ensureStorageBucketExists(): Promise<boolean> {
     try {
-      console.log("Uploading new image...", file.name);
-      
       // Check if storage bucket exists
-      const { data: buckets } = await supabase.storage.listBuckets();
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      
+      if (listError) {
+        console.error('Error checking storage buckets:', listError);
+        toast.error('Failed to access storage');
+        return false;
+      }
+      
       const bucketExists = buckets?.some(bucket => bucket.name === 'article-images');
       
       if (!bucketExists) {
@@ -39,19 +47,46 @@ class ArticleImageService {
         
         if (bucketError) {
           console.error('Error creating storage bucket:', bucketError);
-          return null;
+          toast.error('Failed to create storage bucket');
+          return false;
         }
+        
+        console.log("Storage bucket created successfully");
+        return true;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Exception when ensuring storage bucket exists:', error);
+      toast.error('Failed to configure storage');
+      return false;
+    }
+  }
+
+  async uploadImage(file: File, alt: string, caption?: string, credit?: string): Promise<ArticleImage | null> {
+    try {
+      console.log("Uploading new image...", file.name);
+      
+      // First ensure the storage bucket exists
+      const bucketReady = await this.ensureStorageBucketExists();
+      if (!bucketReady) {
+        console.error("Failed to ensure storage bucket exists");
+        return null;
       }
       
       // Upload the file to storage
-      const fileName = `${Date.now()}-${file.name}`;
+      const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
       const { data: fileData, error: uploadError } = await supabase
         .storage
         .from('article-images')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
         console.error('Error uploading image:', uploadError);
+        toast.error(`Failed to upload image: ${uploadError.message}`);
         return null;
       }
 
@@ -65,6 +100,7 @@ class ArticleImageService {
 
       if (!urlData || !urlData.publicUrl) {
         console.error('Failed to get public URL for uploaded image');
+        toast.error('Failed to get image URL');
         return null;
       }
 
@@ -85,13 +121,16 @@ class ArticleImageService {
 
       if (error) {
         console.error('Error creating image record:', error);
+        toast.error(`Failed to save image details: ${error.message}`);
         return null;
       }
 
       console.log("Image record created successfully:", data);
+      toast.success("Image uploaded successfully");
       return data;
     } catch (error) {
       console.error('Exception when uploading image:', error);
+      toast.error(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return null;
     }
   }

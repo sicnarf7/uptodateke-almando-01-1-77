@@ -5,16 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { articleService } from "@/services/articleService";
-import { ArticleTag } from "@/types/article";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useAdminData } from "@/context/AdminDataContext";
 
-interface TagsTabProps {
-  tags: ArticleTag[];
-  onRefresh: () => void;
-}
-
-export const TagsTab = ({ tags, onRefresh }: TagsTabProps) => {
+export const TagsTab = () => {
+  const { contentData, handleRefresh } = useAdminData();
+  const { tags } = contentData;
+  
   const [tagFormData, setTagFormData] = useState<{ name: string; slug: string }>({
     name: '',
     slug: ''
@@ -60,7 +58,7 @@ export const TagsTab = ({ tags, onRefresh }: TagsTabProps) => {
         console.log("TagsTab: Tag created successfully:", newTag);
         toast.success("Tag created successfully");
         setTagFormData({ name: '', slug: '' });
-        onRefresh();
+        handleRefresh();
       } else {
         console.error("TagsTab: Failed to create tag - no error but no tag returned");
         setFormError("Failed to create tag - please check the console for more details");

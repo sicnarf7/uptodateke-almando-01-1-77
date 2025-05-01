@@ -1,22 +1,18 @@
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArticleForm } from "@/components/admin/ArticleForm";
-import { Article, ArticleAuthor, ArticleTag, ArticleImage } from "@/types/article";
+import { Article } from "@/types/article";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { Star, Edit, Eye, Loader2 } from "lucide-react";
 import { articleService } from "@/services/articleService";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import { useAdminData } from "@/context/AdminDataContext";
 
 interface ArticlesTabProps {
-  articles: Article[];
-  authors: ArticleAuthor[];
-  tags: ArticleTag[];
-  images: ArticleImage[];
-  onRefresh: () => void;
   selectedArticle: Article | null;
   setSelectedArticle: (article: Article | null) => void;
   isCreatingNew: boolean;
@@ -25,11 +21,6 @@ interface ArticlesTabProps {
 }
 
 export const ArticlesTab = ({ 
-  articles, 
-  authors, 
-  tags, 
-  images, 
-  onRefresh,
   selectedArticle,
   setSelectedArticle,
   isCreatingNew,
@@ -37,24 +28,18 @@ export const ArticlesTab = ({
   isLoading = false
 }: ArticlesTabProps) => {
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
-  const { toast } = useToast();
+  const { contentData, handleRefresh } = useAdminData();
+  const { articles, authors, tags, images } = contentData;
   
   const handleUpdateArticle = async (articleId: string, updates: Partial<Article>) => {
     setActionInProgress(articleId);
     try {
       await articleService.updateArticle(articleId, updates);
-      toast({
-        title: "Article updated",
-        description: "The article has been successfully updated.",
-      });
-      onRefresh();
+      toast.success("Article updated successfully");
+      handleRefresh();
     } catch (error) {
       console.error("Error updating article:", error);
-      toast({
-        title: "Update failed",
-        description: "Failed to update the article. Please try again.",
-        variant: "destructive",
-      });
+      toast.error(`Update failed: ${error instanceof Error ? error.message : 'unknown error'}`);
     } finally {
       setActionInProgress(null);
     }
@@ -79,7 +64,7 @@ export const ArticlesTab = ({
           authors={authors}
           tags={tags}
           images={images}
-          onSuccess={onRefresh}
+          onSuccess={handleRefresh}
           isLoading={isLoading}
           setIsLoading={() => {}} // We're managing loading state at a higher level now
           articleToEdit={selectedArticle}
@@ -88,11 +73,8 @@ export const ArticlesTab = ({
       
       <div>
         <Card>
-          <CardHeader>
-            <CardTitle>Articles</CardTitle>
-            <CardDescription>Manage your articles</CardDescription>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
+            <h3 className="text-lg font-medium mb-4">All Articles</h3>
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

@@ -18,6 +18,11 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
     },
+    global: {
+      fetch: (...args) => {
+        return fetch(...args);
+      },
+    },
   }
 );
 
@@ -48,6 +53,20 @@ export const checkSupabaseConnection = async () => {
     if (authorsError) {
       console.error("Supabase connection error (backup check):", authorsError);
       return false;
+    }
+    
+    // Check if storage is available
+    try {
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      if (bucketsError) {
+        console.error("Storage access error:", bucketsError);
+        // Non-fatal, just log it
+      } else {
+        console.log("Available storage buckets:", buckets?.map(b => b.name) || []);
+      }
+    } catch (storageError) {
+      console.error("Failed to check storage:", storageError);
+      // Non-fatal, continue
     }
     
     console.log("Supabase connection successful");

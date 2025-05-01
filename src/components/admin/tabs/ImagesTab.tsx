@@ -4,17 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { ArticleImage } from "@/types/article";
 import { articleService } from "@/services/articleService";
 import { toast } from "sonner";
 import { Loader2, Image as ImageIcon } from "lucide-react";
+import { useAdminData } from "@/context/AdminDataContext";
 
-interface ImagesTabProps {
-  images: ArticleImage[];
-  onRefresh: () => void;
-}
-
-export const ImagesTab = ({ images, onRefresh }: ImagesTabProps) => {
+export const ImagesTab = () => {
+  const { contentData, handleRefresh } = useAdminData();
+  const { images } = contentData;
+  
   const [imageFormData, setImageFormData] = useState<{
     file?: File;
     alt: string;
@@ -54,7 +52,7 @@ export const ImagesTab = ({ images, onRefresh }: ImagesTabProps) => {
     
     if (!imageFormData.file || !imageFormData.alt) {
       setFormError("Please fill all required fields");
-      toast.error("Please fill all required fields");
+      toast.error("Please select an image and provide alt text");
       return;
     }
     
@@ -74,7 +72,13 @@ export const ImagesTab = ({ images, onRefresh }: ImagesTabProps) => {
         toast.success("Image uploaded successfully");
         setImageFormData({ alt: '', caption: '', credit: '' });
         setPreviewUrl(null);
-        onRefresh();
+        handleRefresh();
+        
+        // Clear the file input by recreating it
+        const fileInput = document.getElementById('file') as HTMLInputElement;
+        if (fileInput) {
+          fileInput.value = '';
+        }
       } else {
         console.error("ImagesTab: Failed to upload image - no error but no image returned");
         setFormError("Failed to upload image - please check the console for more details");

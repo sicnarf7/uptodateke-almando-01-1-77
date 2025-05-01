@@ -1,6 +1,7 @@
 
 import { supabase, getTypedTable } from "@/integrations/supabase/client";
 import { ArticleAuthor } from "@/types/article";
+import { toast } from "sonner";
 
 class ArticleAuthorService {
   async getAllAuthors(): Promise<ArticleAuthor[]> {
@@ -12,6 +13,7 @@ class ArticleAuthorService {
 
       if (error) {
         console.error('Error fetching authors:', error);
+        toast.error('Could not load authors: ' + error.message);
         return [];
       }
 
@@ -19,6 +21,7 @@ class ArticleAuthorService {
       return data || [];
     } catch (error) {
       console.error('Exception when fetching authors:', error);
+      toast.error('Failed to fetch authors');
       return [];
     }
   }
@@ -33,12 +36,14 @@ class ArticleAuthorService {
 
       if (error) {
         console.error('Error fetching author:', error);
+        toast.error('Could not load author details');
         return null;
       }
 
       return data;
     } catch (error) {
       console.error('Exception when fetching author by ID:', error);
+      toast.error('Failed to load author');
       return null;
     }
   }
@@ -50,6 +55,7 @@ class ArticleAuthorService {
       // Validate required fields
       if (!author.name || !author.image_url) {
         console.error("Missing required fields for author creation");
+        toast.error("Please fill all required fields");
         return null;
       }
       
@@ -60,13 +66,16 @@ class ArticleAuthorService {
 
       if (error) {
         console.error('Error creating author:', error);
+        toast.error(`Failed to create author: ${error.message}`);
         return null;
       }
 
       console.log("Author created successfully:", data);
+      toast.success("Author created successfully");
       return data;
     } catch (error) {
       console.error('Exception when creating author:', error);
+      toast.error(`Failed to create author: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return null;
     }
   }
