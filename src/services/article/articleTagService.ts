@@ -15,6 +15,7 @@ class ArticleTagService {
         return [];
       }
 
+      console.log(`Successfully fetched ${data?.length || 0} tags`);
       return data || [];
     } catch (error) {
       console.error('Exception when fetching tags:', error);
@@ -25,6 +26,13 @@ class ArticleTagService {
   async createTag(tag: Omit<ArticleTag, 'id'>): Promise<ArticleTag | null> {
     try {
       console.log("Creating new tag:", tag);
+      
+      // Validate required fields
+      if (!tag.name || !tag.slug) {
+        console.error("Missing required fields for tag creation");
+        return null;
+      }
+      
       const { data, error } = await getTypedTable('article_tags')
         .insert(tag)
         .select()
@@ -35,6 +43,7 @@ class ArticleTagService {
         return null;
       }
 
+      console.log("Tag created successfully:", data);
       return data;
     } catch (error) {
       console.error('Exception when creating tag:', error);

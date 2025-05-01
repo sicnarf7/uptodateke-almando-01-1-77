@@ -9,7 +9,20 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+// Create client with better error handling and logging
+export const supabase = createClient<Database>(
+  SUPABASE_URL, 
+  SUPABASE_PUBLISHABLE_KEY,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  }
+);
+
+// Log client details for debugging
+console.log("Supabase client initialized with URL:", SUPABASE_URL);
 
 // Add a helper function to get typed references to tables
 // This is a workaround for TypeScript errors with Supabase types
@@ -22,11 +35,22 @@ export const getTypedTable = <T extends keyof Database['public']['Tables']>(
 // Add a utility function to check if the Supabase connection is working
 export const checkSupabaseConnection = async () => {
   try {
+    console.log("Checking Supabase connection...");
     const { data, error } = await supabase.from('article_tags').select('count').limit(1);
+    
     if (error) {
       console.error("Supabase connection error:", error);
       return false;
     }
+    
+    // Also try a different table as a backup check
+    const { error: authorsError } = await supabase.from('article_authors').select('count').limit(1);
+    if (authorsError) {
+      console.error("Supabase connection error (backup check):", authorsError);
+      return false;
+    }
+    
+    console.log("Supabase connection successful");
     return true;
   } catch (error) {
     console.error("Failed to connect to Supabase:", error);

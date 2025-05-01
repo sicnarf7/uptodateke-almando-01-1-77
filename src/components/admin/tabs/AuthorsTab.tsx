@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArticleAuthor } from "@/types/article";
 import { articleService } from "@/services/articleService";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface AuthorsTabProps {
   authors: ArticleAuthor[];
@@ -26,8 +27,12 @@ export const AuthorsTab = ({ authors, onRefresh }: AuthorsTabProps) => {
     role: '',
     bio: ''
   });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const handleAuthorChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormError(null);
     const { name, value } = e.target;
     setAuthorFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -36,11 +41,15 @@ export const AuthorsTab = ({ authors, onRefresh }: AuthorsTabProps) => {
     e.preventDefault();
     
     if (!authorFormData.name || !authorFormData.image_url) {
+      setFormError("Please fill all required fields");
       toast.error("Please fill all required fields");
       return;
     }
     
     try {
+      setIsSubmitting(true);
+      console.log("AuthorsTab: Creating new author:", authorFormData);
+      
       const newAuthor = await articleService.createAuthor({
         name: authorFormData.name,
         image_url: authorFormData.image_url,
@@ -49,13 +58,21 @@ export const AuthorsTab = ({ authors, onRefresh }: AuthorsTabProps) => {
       });
       
       if (newAuthor) {
+        console.log("AuthorsTab: Author created successfully:", newAuthor);
         toast.success("Author created successfully");
         setAuthorFormData({ name: '', image_url: '', role: '', bio: '' });
         onRefresh();
+      } else {
+        console.error("AuthorsTab: Failed to create author - no error but no author returned");
+        setFormError("Failed to create author - please check the console for more details");
+        toast.error("Failed to create author");
       }
     } catch (error) {
-      console.error("Error creating author:", error);
+      console.error("AuthorsTab: Error creating author:", error);
+      setFormError(`Error creating author: ${error instanceof Error ? error.message : 'Unknown error'}`);
       toast.error("Failed to create author");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -69,6 +86,12 @@ export const AuthorsTab = ({ authors, onRefresh }: AuthorsTabProps) => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleAuthorSubmit} className="space-y-4">
+              {formError && (
+                <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">
+                  {formError}
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <Label htmlFor="name">Name*</Label>
                 <Input 
@@ -77,6 +100,7 @@ export const AuthorsTab = ({ authors, onRefresh }: AuthorsTabProps) => {
                   value={authorFormData.name}
                   onChange={handleAuthorChange}
                   required
+                  disabled={isSubmitting}
                 />
               </div>
               
@@ -88,7 +112,11 @@ export const AuthorsTab = ({ authors, onRefresh }: AuthorsTabProps) => {
                   value={authorFormData.image_url}
                   onChange={handleAuthorChange}
                   required
+                  disabled={isSubmitting}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Use a direct image URL (e.g., https://example.com/image.jpg)
+                </p>
               </div>
               
               <div className="space-y-2">
@@ -98,6 +126,7 @@ export const AuthorsTab = ({ authors, onRefresh }: AuthorsTabProps) => {
                   name="role" 
                   value={authorFormData.role || ""}
                   onChange={handleAuthorChange}
+                  disabled={isSubmitting}
                 />
               </div>
               
@@ -108,10 +137,24 @@ export const AuthorsTab = ({ authors, onRefresh }: AuthorsTabProps) => {
                   name="bio" 
                   value={authorFormData.bio || ""}
                   onChange={handleAuthorChange}
+                  disabled={isSubmitting}
                 />
               </div>
               
-              <Button type="submit" className="w-full">Create Author</Button>
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create Author"
+                )}
+              </Button>
             </form>
           </CardContent>
         </Card>
@@ -134,6 +177,9 @@ export const AuthorsTab = ({ authors, onRefresh }: AuthorsTabProps) => {
                       src={author.image_url} 
                       alt={author.name} 
                       className="w-12 h-12 rounded-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150';
+                      }}
                     />
                     <div>
                       <p className="font-medium">{author.name}</p>

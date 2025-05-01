@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { articleService } from "@/services/articleService";
 import { ArticleTag } from "@/types/article";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface TagsTabProps {
   tags: ArticleTag[];
@@ -18,8 +19,11 @@ export const TagsTab = ({ tags, onRefresh }: TagsTabProps) => {
     name: '',
     slug: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   
   const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormError(null);
     const { name, value } = e.target;
     setTagFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -39,24 +43,35 @@ export const TagsTab = ({ tags, onRefresh }: TagsTabProps) => {
     e.preventDefault();
     
     if (!tagFormData.name || !tagFormData.slug) {
+      setFormError("Please fill all required fields");
       toast.error("Please fill all required fields");
       return;
     }
     
     try {
+      setIsSubmitting(true);
+      console.log("TagsTab: Creating new tag:", tagFormData);
       const newTag = await articleService.createTag({
         name: tagFormData.name,
         slug: tagFormData.slug
       });
       
       if (newTag) {
+        console.log("TagsTab: Tag created successfully:", newTag);
         toast.success("Tag created successfully");
         setTagFormData({ name: '', slug: '' });
         onRefresh();
+      } else {
+        console.error("TagsTab: Failed to create tag - no error but no tag returned");
+        setFormError("Failed to create tag - please check the console for more details");
+        toast.error("Failed to create tag");
       }
     } catch (error) {
-      console.error("Error creating tag:", error);
+      console.error("TagsTab: Error creating tag:", error);
+      setFormError(`Error creating tag: ${error instanceof Error ? error.message : 'Unknown error'}`);
       toast.error("Failed to create tag");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -70,6 +85,12 @@ export const TagsTab = ({ tags, onRefresh }: TagsTabProps) => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleTagSubmit} className="space-y-4">
+              {formError && (
+                <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">
+                  {formError}
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <Label htmlFor="name">Name*</Label>
                 <Input 
@@ -79,6 +100,7 @@ export const TagsTab = ({ tags, onRefresh }: TagsTabProps) => {
                   onChange={handleTagChange}
                   onBlur={(e) => generateTagSlug(e.target.value)}
                   required
+                  disabled={isSubmitting}
                 />
               </div>
               
@@ -90,10 +112,24 @@ export const TagsTab = ({ tags, onRefresh }: TagsTabProps) => {
                   value={tagFormData.slug}
                   onChange={handleTagChange}
                   required
+                  disabled={isSubmitting}
                 />
               </div>
               
-              <Button type="submit" className="w-full">Create Tag</Button>
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create Tag"
+                )}
+              </Button>
             </form>
           </CardContent>
         </Card>

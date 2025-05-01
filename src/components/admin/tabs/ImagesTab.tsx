@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ArticleImage } from "@/types/article";
 import { articleService } from "@/services/articleService";
 import { toast } from "sonner";
+import { Loader2, Image as ImageIcon } from "lucide-react";
 
 interface ImagesTabProps {
   images: ArticleImage[];
@@ -24,12 +25,25 @@ export const ImagesTab = ({ images, onRefresh }: ImagesTabProps) => {
     caption: '',
     credit: ''
   });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormError(null);
     const { name, value, files } = e.target;
     
     if (name === 'file' && files && files.length > 0) {
-      setImageFormData(prev => ({ ...prev, file: files[0] }));
+      const file = files[0];
+      setImageFormData(prev => ({ ...prev, file }));
+      
+      // Generate preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     } else {
       setImageFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -39,11 +53,15 @@ export const ImagesTab = ({ images, onRefresh }: ImagesTabProps) => {
     e.preventDefault();
     
     if (!imageFormData.file || !imageFormData.alt) {
+      setFormError("Please fill all required fields");
       toast.error("Please fill all required fields");
       return;
     }
     
     try {
+      setIsSubmitting(true);
+      console.log("ImagesTab: Uploading new image:", imageFormData.file.name);
+      
       const newImage = await articleService.uploadImage(
         imageFormData.file,
         imageFormData.alt,
@@ -52,13 +70,22 @@ export const ImagesTab = ({ images, onRefresh }: ImagesTabProps) => {
       );
       
       if (newImage) {
+        console.log("ImagesTab: Image uploaded successfully:", newImage);
         toast.success("Image uploaded successfully");
         setImageFormData({ alt: '', caption: '', credit: '' });
+        setPreviewUrl(null);
         onRefresh();
+      } else {
+        console.error("ImagesTab: Failed to upload image - no error but no image returned");
+        setFormError("Failed to upload image - please check the console for more details");
+        toast.error("Failed to upload image");
       }
     } catch (error) {
-      console.error("Error uploading image:", error);
+      console.error("ImagesTab: Error uploading image:", error);
+      setFormError(`Error uploading image: ${error instanceof Error ? error.message : 'Unknown error'}`);
       toast.error("Failed to upload image");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -72,6 +99,12 @@ export const ImagesTab = ({ images, onRefresh }: ImagesTabProps) => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleImageSubmit} className="space-y-4">
+              {formError && (
+                <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">
+                  {formError}
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <Label htmlFor="file">Image File*</Label>
                 <Input 
@@ -81,7 +114,18 @@ export const ImagesTab = ({ images, onRefresh }: ImagesTabProps) => {
                   accept="image/*"
                   onChange={handleImageChange}
                   required
+                  disabled={isSubmitting}
                 />
+                
+                {previewUrl && (
+                  <div className="mt-2 border rounded-md overflow-hidden">
+                    <img 
+                      src={previewUrl} 
+                      alt="Preview" 
+                      className="w-full h-auto max-h-40 object-cover"
+                    />
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -92,6 +136,7 @@ export const ImagesTab = ({ images, onRefresh }: ImagesTabProps) => {
                   value={imageFormData.alt}
                   onChange={handleImageChange}
                   required
+                  disabled={isSubmitting}
                 />
               </div>
               
@@ -102,6 +147,7 @@ export const ImagesTab = ({ images, onRefresh }: ImagesTabProps) => {
                   name="caption" 
                   value={imageFormData.caption || ""}
                   onChange={handleImageChange}
+                  disabled={isSubmitting}
                 />
               </div>
               
@@ -112,10 +158,24 @@ export const ImagesTab = ({ images, onRefresh }: ImagesTabProps) => {
                   name="credit" 
                   value={imageFormData.credit || ""}
                   onChange={handleImageChange}
+                  disabled={isSubmitting}
                 />
               </div>
               
-              <Button type="submit" className="w-full">Upload Image</Button>
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  "Upload Image"
+                )}
+              </Button>
             </form>
           </CardContent>
         </Card>
@@ -134,11 +194,26 @@ export const ImagesTab = ({ images, onRefresh }: ImagesTabProps) => {
               ) : (
                 images.map((image) => (
                   <div key={image.id} className="border rounded-md overflow-hidden">
-                    <img 
-                      src={image.url} 
-                      alt={image.alt} 
-                      className="w-full h-40 object-cover"
-                    />
+                    <div className="h-40 bg-muted relative">
+                      <img 
+                        src={image.url} 
+                        alt={image.alt} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.onerror = null;
+                          target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNlZWVlZWUiPjwvcmVjdD48dGV4dCB0ZXh0LWFuY2hvcj0ibWlkZGxlIiB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5OTk5Ij5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
+                        }}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 bg-black/60 transition-opacity">
+                        <a href={image.url} target="_blank" rel="noopener noreferrer">
+                          <Button variant="ghost" size="sm">
+                            <ImageIcon className="h-4 w-4 mr-1" />
+                            View Full Size
+                          </Button>
+                        </a>
+                      </div>
+                    </div>
                     <div className="p-3">
                       <p className="text-sm font-medium truncate">{image.alt}</p>
                       {image.caption && (

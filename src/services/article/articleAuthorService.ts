@@ -15,6 +15,7 @@ class ArticleAuthorService {
         return [];
       }
 
+      console.log(`Successfully fetched ${data?.length || 0} authors`);
       return data || [];
     } catch (error) {
       console.error('Exception when fetching authors:', error);
@@ -45,6 +46,13 @@ class ArticleAuthorService {
   async createAuthor(author: Omit<ArticleAuthor, 'id'>): Promise<ArticleAuthor | null> {
     try {
       console.log("Creating new author:", author);
+      
+      // Validate required fields
+      if (!author.name || !author.image_url) {
+        console.error("Missing required fields for author creation");
+        return null;
+      }
+      
       const { data, error } = await getTypedTable('article_authors')
         .insert(author)
         .select()
@@ -55,6 +63,7 @@ class ArticleAuthorService {
         return null;
       }
 
+      console.log("Author created successfully:", data);
       return data;
     } catch (error) {
       console.error('Exception when creating author:', error);

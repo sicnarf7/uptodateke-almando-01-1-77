@@ -15,6 +15,7 @@ class ArticleImageService {
         return [];
       }
 
+      console.log(`Successfully fetched ${data?.length || 0} images`);
       return data || [];
     } catch (error) {
       console.error('Exception when fetching images:', error);
@@ -24,7 +25,24 @@ class ArticleImageService {
 
   async uploadImage(file: File, alt: string, caption?: string, credit?: string): Promise<ArticleImage | null> {
     try {
-      console.log("Uploading new image...");
+      console.log("Uploading new image...", file.name);
+      
+      // Check if storage bucket exists
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets?.some(bucket => bucket.name === 'article-images');
+      
+      if (!bucketExists) {
+        console.log("Article images bucket doesn't exist, creating it...");
+        const { error: bucketError } = await supabase.storage.createBucket('article-images', {
+          public: true,
+        });
+        
+        if (bucketError) {
+          console.error('Error creating storage bucket:', bucketError);
+          return null;
+        }
+      }
+      
       // Upload the file to storage
       const fileName = `${Date.now()}-${file.name}`;
       const { data: fileData, error: uploadError } = await supabase
@@ -37,6 +55,8 @@ class ArticleImageService {
         return null;
       }
 
+      console.log("File uploaded successfully, getting public URL");
+      
       // Get the public URL
       const { data: urlData } = supabase
         .storage
@@ -47,6 +67,8 @@ class ArticleImageService {
         console.error('Failed to get public URL for uploaded image');
         return null;
       }
+
+      console.log("Got public URL:", urlData.publicUrl);
 
       // Create an entry in the article_images table
       const imageData = {
@@ -66,6 +88,7 @@ class ArticleImageService {
         return null;
       }
 
+      console.log("Image record created successfully:", data);
       return data;
     } catch (error) {
       console.error('Exception when uploading image:', error);
