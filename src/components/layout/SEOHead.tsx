@@ -6,7 +6,7 @@ interface PreloadResource {
   href: string;
   as: string;
   type?: string;
-  crossOrigin?: string;
+  crossOrigin?: "anonymous" | "use-credentials" | "";
 }
 
 interface SEOHeadProps {

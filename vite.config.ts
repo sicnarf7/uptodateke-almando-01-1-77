@@ -2,15 +2,21 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import path from 'path'
+import { componentTagger } from "lovable-tagger"
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    react(),
+    mode === 'development' && componentTagger(),
+  ].filter(Boolean),
+  
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
+  
   build: {
     // Output directory
     outDir: 'dist',
@@ -65,8 +71,9 @@ export default defineConfig({
     // Modern browsers target for smaller bundle size
     target: 'es2018'
   },
+  
   server: {
-    port: 8080 // Setting port to 8080 as required
-    // Removed middlewareMode as it was causing a type error
+    host: "::",
+    port: 8080
   }
-})
+}))
