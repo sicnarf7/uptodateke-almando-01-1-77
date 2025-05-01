@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useEditor } from '@tiptap/react';
 import { EditorToolbar } from './editor/EditorToolbar';
 import { EditorContent } from './editor/EditorContent';
@@ -20,6 +20,13 @@ export const RichTextEditor = ({ content, onChange, disabled = false }: RichText
     },
     editable: !disabled,
   });
+  
+  // Update editor content when the content prop changes
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
 
   if (!editor) {
     return null;

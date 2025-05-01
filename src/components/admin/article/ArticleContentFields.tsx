@@ -19,6 +19,9 @@ export const ArticleContentFields = ({
   onExcerptChange,
   onContentChange,
 }: ArticleContentFieldsProps) => {
+  // This console log helps us debug what content is coming in
+  console.log('Content passed to ArticleContentFields:', content);
+  
   return (
     <>
       <div className="space-y-2">
@@ -36,7 +39,10 @@ export const ArticleContentFields = ({
         <Label htmlFor="content">Content*</Label>
         <RichTextEditor
           content={content}
-          onChange={onContentChange}
+          onChange={(newContent) => {
+            console.log('RichTextEditor onChange called with:', newContent);
+            onContentChange(newContent);
+          }}
           disabled={isLoading}
         />
       </div>

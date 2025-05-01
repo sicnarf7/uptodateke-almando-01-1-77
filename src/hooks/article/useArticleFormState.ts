@@ -26,6 +26,7 @@ export function useArticleFormState({ articleToEdit = null }: UseArticleFormStat
   // Load article data for editing
   useEffect(() => {
     if (articleToEdit) {
+      console.log("Loading article for editing:", articleToEdit);
       setFormData({
         title: articleToEdit.title || "",
         slug: articleToEdit.slug || "",

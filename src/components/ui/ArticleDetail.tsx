@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Article } from "@/types/article";
@@ -156,7 +157,7 @@ const ArticleDetail = () => {
         </div>
         
         <div 
-          className="prose dark:prose-invert prose-lg max-w-none mb-12"
+          className="prose dark:prose-invert prose-lg max-w-none mb-12 prose-headings:font-bold prose-p:mb-6 prose-img:rounded-lg"
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
         
