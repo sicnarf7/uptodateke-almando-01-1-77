@@ -1,3 +1,4 @@
+
 import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -53,6 +54,11 @@ const App = () => (
             <Route path="/article/:slug" element={<Article />} />
             <Route path="/admin" element={<Admin />} />
             
+            {/* Dynamic News Routes */}
+            <Route path="/news" element={<News />} />
+            <Route path="/news/:category" element={<News />} />
+            <Route path="/news/:category/:subcategory" element={<News />} />
+            
             {/* Entertainment routes */}
             <Route path="/entertainment" element={<Entertainment />} />
             <Route path="/entertainment/celebrity/local" element={<Celebrity type="local" />} />
@@ -65,19 +71,6 @@ const App = () => (
             <Route path="/entertainment/events/festivals" element={<Events type="festivals" />} />
             <Route path="/entertainment/events/nightlife" element={<Events type="nightlife" />} />
             <Route path="/entertainment/events/featured" element={<Events type="featured" />} />
-            
-            {/* News routes */}
-            <Route path="/news" element={<News />} />
-            <Route path="/news/politics/elections" element={<News section="politics" category="elections" />} />
-            <Route path="/news/politics/bills" element={<News section="politics" category="bills" />} />
-            <Route path="/news/politics/government" element={<News section="politics" category="government" />} />
-            <Route path="/news/business/startups" element={<News section="business" category="startups" />} />
-            <Route path="/news/business/economy" element={<News section="business" category="economy" />} />
-            <Route path="/news/business/markets" element={<News section="business" category="markets" />} />
-            <Route path="/news/tech/gadgets" element={<News section="tech" category="gadgets" />} />
-            <Route path="/news/tech/apps" element={<News section="tech" category="apps" />} />
-            <Route path="/news/tech/innovation" element={<News section="tech" category="innovation" />} />
-            <Route path="/news/featured" element={<News section="featured" />} />
             
             {/* Static pages */}
             <Route path="/about" element={<About />} />
