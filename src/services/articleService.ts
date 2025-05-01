@@ -44,6 +44,10 @@ class ArticleService {
   async addTagToArticle(articleId: string, tagId: string): Promise<boolean> {
     return articleTagService.addTagToArticle(articleId, tagId);
   }
+  
+  async clearTagsForArticle(articleId: string): Promise<boolean> {
+    return articleTagService.clearTagsForArticle(articleId);
+  }
 
   // Author management
   async getAllAuthors(): Promise<ArticleAuthor[]> {
