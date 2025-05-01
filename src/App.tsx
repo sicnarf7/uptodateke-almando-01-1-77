@@ -10,6 +10,7 @@ import { HelmetProvider } from "react-helmet-async";
 
 // Eager load main layout and loading component
 import MainLayout from "./components/layout/MainLayout";
+import PageSkeleton from "./components/ui/PageSkeleton";
 
 // Lazy load all the page components
 const Index = lazy(() => import("./pages/Index"));
@@ -35,13 +36,6 @@ const Sitemap = lazy(() => import("./pages/Sitemap"));
 const Sports = lazy(() => import("./pages/Sports"));
 const Business = lazy(() => import("./pages/Business"));
 
-// Loading component with skeleton loaders
-const PageLoader = () => (
-  <div className="flex items-center justify-center w-full h-screen">
-    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-  </div>
-);
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -49,7 +43,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<PageSkeleton />}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/articles" element={<Articles />} />
