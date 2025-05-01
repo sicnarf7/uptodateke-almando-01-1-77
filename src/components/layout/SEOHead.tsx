@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 
 interface SEOHeadProps {
   title?: string;
@@ -17,7 +17,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   ogImage = '/og-image.png',
   noIndex = false,
 }) => {
-  const siteUrl = window.location.origin;
+  const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const fullCanonicalUrl = canonicalUrl ? `${siteUrl}${canonicalUrl}` : undefined;
   
   return (

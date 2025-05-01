@@ -9,7 +9,7 @@ import { ArticlesTab } from "@/components/admin/tabs/ArticlesTab";
 import { AuthorsTab } from "@/components/admin/tabs/AuthorsTab";
 import { TagsTab } from "@/components/admin/tabs/TagsTab";
 import { ImagesTab } from "@/components/admin/tabs/ImagesTab";
-import { Helmet } from "react-helmet";
+import { SEOHead } from "@/components/layout/SEOHead";
 
 /**
  * Admin dashboard with content management system tabs
@@ -74,11 +74,11 @@ const Admin = () => {
 
   return (
     <MainLayout>
-      <Helmet>
-        <title>Admin Dashboard - UpTodateKE</title>
-        <meta name="description" content="Admin dashboard for managing UpTodateKE articles, tags, authors, and images." />
-        <meta name="robots" content="noindex, nofollow" /> {/* Don't index admin pages */}
-      </Helmet>
+      <SEOHead
+        title="Admin Dashboard - UpTodateKE"
+        description="Admin dashboard for managing UpTodateKE articles, tags, authors, and images."
+        noIndex={true} // Don't index admin pages
+      />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">Content Management System</h1>
         
